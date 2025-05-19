@@ -14,9 +14,11 @@ create table if not exists borrower(
     category_id int not null comment '借阅人身份',
     borrowed_num int default 0 comment '已借阅数目',
     registration_date date not null comment '注册时间',
+    is_can_borrow bool not null default TRUE comment '是否可以借书',
     primary key (id),
     foreign key (category_id) references category(category_id)
 );
+
 # 借阅规则
 drop table if exists category;
 create table if not exists category(
@@ -33,16 +35,12 @@ create table if not exists book(
     book_id int auto_increment unique comment '图书编号',
     title varchar(255) not null comment '书名',
     isbn varchar(17) not null unique comment '国际标准书号',
-    category_id int null comment '图书分类号',
-    author_id int null comment '作者编号',
     publisher_id int null comment '出版社编号',
     publication_year year null comment '出版年份',
     total int not null comment '图书总数',
     remain int not null comment '图书剩余量',
     location varchar(255) not null comment '存放位置',
     primary key (book_id),
-    foreign key (category_id) references bookCategory(category_id),
-    foreign key (author_id) references author(author_id),
     foreign key (publisher_id) references publisher(publisher_id)
 );
 
@@ -54,12 +52,32 @@ create table if not exists bookCategory(
     primary key (category_id)
 );
 
+# 图书--图书类表关系表
+drop table if exists bookCategoryRelation;
+create table if not exists bookCategoryRelation(
+                                                   book_id int auto_increment unique comment '图书编号',
+                                                   category_id int not null comment '图书分类号',
+                                                   primary key (book_id, category_id),
+                                                   foreign key (book_id) references book(book_id),
+                                                   foreign key (category_id) references bookcategory(category_id)
+);
+
 # 作者表
 drop table if exists author;
 create table if not exists author(
     author_id int not null auto_increment comment '作者编号',
     author varchar(255) unique not null comment '作者名字',
     primary key (author_id)
+);
+
+# 图书--作者关系表
+drop table if exists bookAuthorRelation;
+create table if not exists bookAuthorRelation(
+    book_id int auto_increment unique comment '图书编号',
+    author_id int not null comment '作者编号',
+    primary key (book_id, author_id),
+    foreign key (book_id) references book(book_id),
+    foreign key (author_id) references author(author_id)
 );
 
 # 出版社表
@@ -110,43 +128,4 @@ create table if not exists fine_record(
 );
 
 SET FOREIGN_KEY_CHECKS = 1;
-
-# ------------------创建触发器---------------------
-# 成功借书之后
-delimiter //
-CREATE TRIGGER after_borrow_insert
-    AFTER INSERT ON borrow_record
-    FOR EACH ROW
-BEGIN
-    -- 更新借阅人已借数量
-    UPDATE borrower
-    SET borrowed_num = borrowed_num + 1
-    WHERE id = NEW.borrower_id;
-
-    -- 更新图书剩余量
-    UPDATE book
-    SET remain = remain - 1
-    WHERE book_id = NEW.book_id;
-END//
-delimiter ;
-
-# 成功还书之后
-delimiter //
-CREATE TRIGGER after_return_update
-    AFTER UPDATE ON borrow_record
-    FOR EACH ROW
-BEGIN
-    IF NEW.is_return = TRUE AND OLD.is_return = FALSE THEN
-        -- 更新借阅人已借数量
-        UPDATE borrower
-        SET borrowed_num = borrowed_num - 1
-        WHERE id = NEW.borrower_id;
-
-        -- 更新图书剩余量
-        UPDATE book
-        SET remain = remain + 1
-        WHERE book_id = NEW.book_id;
-    END IF;
-END//
-delimiter ;
 
