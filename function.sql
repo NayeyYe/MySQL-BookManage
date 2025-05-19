@@ -116,10 +116,10 @@ CREATE FUNCTION IF NOT EXISTS Calculate_Fines(target_name varchar(20))
 BEGIN
     declare fines int;
     DECLARE done INT DEFAULT FALSE;
-    DECLARE v_borrower_id INT;
-    DECLARE v_overdue_days INT;
-    DECLARE v_fine_amount INT;
-    DECLARE v_record_id INT;
+    DECLARE temp_borrower_id INT;
+    DECLARE temp_overdue_days INT;
+    DECLARE temp_fine_amount INT;
+    DECLARE temp_record_id INT;
 
     -- 声明游标：获取所有未归还且未缴纳罚款的记录
     DECLARE cur_fines CURSOR FOR
@@ -133,23 +133,23 @@ BEGIN
     OPEN cur_fines;
 
     read_loop: LOOP
-        FETCH cur_fines INTO v_record_id, v_borrower_id, v_overdue_days;
+        FETCH cur_fines INTO temp_record_id, temp_borrower_id, temp_overdue_days;
         IF done THEN
             LEAVE read_loop;
         END IF;
 
         -- 根据逾期天数计算罚款
-        SET v_fine_amount =
+        SET temp_fine_amount =
                 CASE
-                    WHEN v_overdue_days <= 30 THEN v_overdue_days * 1
-                    WHEN v_overdue_days <= 90 THEN 30 * 1 + (v_overdue_days - 30) * 3
-                    ELSE 30 * 1 + 60 * 3 + (v_overdue_days - 90) * 5
+                    WHEN temp_overdue_days <= 30 THEN temp_overdue_days * 1
+                    WHEN temp_overdue_days <= 90 THEN 30 * 1 + (temp_overdue_days - 30) * 3
+                    ELSE 30 * 1 + 60 * 3 + (temp_overdue_days - 90) * 5
                     END;
 
         -- 更新罚款金额到 fine_record 表
         UPDATE fine_record
-        SET fine = v_fine_amount
-        WHERE record_id = v_record_id;
+        SET fine = temp_fine_amount
+        WHERE record_id = temp_record_id;
     END LOOP;
 
     CLOSE cur_fines;
