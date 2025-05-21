@@ -1,123 +1,98 @@
+# BookManage 数据库表结构说明
 
-### **1. 借阅人表 `borrower`**
-#### **字段说明**
-| 字段名              | 数据类型    | 约束                                  | 说明                     |
-| ------------------- | ----------- | ------------------------------------- | ------------------------ |
-| `id`                | INT         | PK, AUTO_INCREMENT, UNIQUE            | 借阅人证件号（唯一标识） |
-| `name`              | VARCHAR(20) | NOT NULL                              | 借阅人姓名               |
-| `PhoneNumber`       | VARCHAR(20) | NOT NULL                              | 借阅人电话               |
-| `category_id`       | INT         | NOT NULL, FK → `category.category_id` | 借阅人身份类型           |
-| `registration_date` | time        | NOT NULL                              | 注册时间                 |
-| `borrowed_num`      | INT         | DEFAULT 0                             | 当前已借阅数目           |
+## 1. category（借阅规则表）
 
-#### **主键与外键**
-- **主键**：`id`（唯一标识借阅人）。
-- **外键**：`category_id` → `category.category_id`（关联借阅规则）。
+| 字段名             | 类型 | 允许NULL | 默认值 | 键     | 注释                                  |
+| ------------------ | ---- | -------- | ------ | ------ | ------------------------------------- |
+| category_id        | int  | 否       | 自增   | 主键   | 身份类型代码                          |
+| category           | enum | 否       | 无     | 唯一键 | 用户类别（学生/教师/校外人员/管理员） |
+| max_borrowed_books | int  | 否       | 无     |        | 最大可借阅书籍量                      |
+| borrow_period      | int  | 否       | 无     |        | 借阅期限（天）                        |
 
-#### **问题**
-1. **冗余字段**：`borrowed_num` 可通过统计 `borrow_record` 表中未归还的记录动态计算。
-2. **电话字段长度不足**：`PhoneNumber` 定义为 `VARCHAR(20)`，可能无法支持国际号码（如 `+86 13800138000`）。
+## 2. borrower（借阅人表）
 
+| 字段名            | 类型        | 允许NULL | 默认值 | 键     | 注释                     |
+| ----------------- | ----------- | -------- | ------ | ------ | ------------------------ |
+| id                | int         | 否       | 自增   | 主键   | 借阅人证件号             |
+| name              | varchar(20) | 否       | 无     |        | 借阅人姓名               |
+| PhoneNumber       | varchar(30) | 否       | 无     | 唯一键 | 借阅人电话               |
+| category_id       | int         | 否       | 无     | 外键   | 关联category表的身份类型 |
+| borrowed_num      | int         | 是       | 0      |        | 已借阅数目               |
+| registration_date | date        | 否       | 无     |        | 注册时间                 |
+| is_can_borrow     | bool        | 否       | TRUE   |        | 是否可借书               |
 
+## 3. publisher（出版社表）
 
-### **2. 借阅规则表 `category`**
-#### **字段说明**
-| 字段名               | 数据类型 | 约束               | 说明                     |
-| -------------------- | -------- | ------------------ | ------------------------ |
-| `category_id`        | INT      | PK, AUTO_INCREMENT | 身份类型代码（唯一标识） |
-| `category`           | ENUM     | UNIQUE             | 用户类别（学生/教师等）  |
-| `max_borrowed_books` | INT      | NOT NULL           | 最大可借阅书籍数量       |
-| `borrow_period`      | INT      | NOT NULL           | 借阅期限（天数）         |
+| 字段名       | 类型         | 允许NULL | 默认值 | 键     | 注释       |
+| ------------ | ------------ | -------- | ------ | ------ | ---------- |
+| publisher_id | int          | 否       | 自增   | 主键   | 出版社编号 |
+| publisher    | varchar(255) | 否       | 无     | 唯一键 | 出版社名字 |
 
-#### **主键与外键**
-- **主键**：`category_id`。
-- **唯一约束**：`category` 字段确保类别名称唯一。
+## 4. book（图书表）
 
-#### **问题**
-1. **扩展性限制**：`category` 为 `ENUM` 类型，新增类别需修改表结构，建议改用 `VARCHAR` + 独立字典表。
+| 字段名           | 类型         | 允许NULL | 默认值 | 键            | 注释         |
+| ---------------- | ------------ | -------- | ------ | ------------- | ------------ |
+| book_id          | int          | 否       | 自增   | 主键          | 图书编号     |
+| title            | varchar(255) | 否       | 无     |               | 书名         |
+| isbn             | varchar(17)  | 否       | 无     | 唯一键        | 国际标准书号 |
+| publisher_id     | int          | 是       | NULL   | 外键:pulisher | 出版社编号   |
+| publication_year | year         | 是       | NULL   |               | 出版年份     |
+| total            | int          | 否       | 无     |               | 图书总数     |
+| remain           | int          | 否       | 无     |               | 图书剩余量   |
+| location         | varchar(255) | 否       | 无     |               | 存放位置     |
 
----
+## 5. bookCategory（图书类别表）
 
-### **3. 图书表 `book`**
-#### **字段说明**
-| 字段名             | 数据类型     | 约束                                  | 说明                 |
-| ------------------ | ------------ | ------------------------------------- | -------------------- |
-| `book_id`          | INT          | PK, AUTO_INCREMENT, UNIQUE            | 图书编号（唯一标识） |
-| `title`            | VARCHAR(255) | NOT NULL                              | 书名                 |
-| `isbn`             | VARCHAR(13)  | NOT NULL, UNIQUE                      | 国际标准书号（ISBN） |
-| `category_id`      | INT          | NULL, FK → `bookCategory.category_id` | 图书分类号           |
-| `author_id`        | INT          | NULL, FK → `author.author_id`         | 作者编号             |
-| `publisher_id`     | INT          | NULL, FK → `publisher.publisher_id`   | 出版社编号           |
-| `publication_year` | YEAR         | NULL                                  | 出版年份             |
-| `total`            | INT          | NOT NULL                              | 图书总数             |
-| `remain`           | INT          | NOT NULL                              | 剩余可借数量         |
-| `location`         | VARCHAR(255) | NOT NULL                              | 存放位置             |
+| 字段名      | 类型        | 允许NULL | 默认值 | 键     | 注释       |
+| ----------- | ----------- | -------- | ------ | ------ | ---------- |
+| category_id | int         | 否       | 自增   | 主键   | 图书分类号 |
+| category    | varchar(20) | 否       | 无     | 唯一键 | 图书类别   |
 
-#### **主键与外键**
-- **主键**：`book_id`。
-- **外键**：
-  - `category_id` → `bookCategory.category_id`
-  - `author_id` → `author.author_id`
-  - `publisher_id` → `publisher.publisher_id`
+## 6. bookCategoryRelation（图书-类别关系表）
 
----
+| 字段名      | 类型 | 允许NULL | 默认值 | 键             | 注释       |
+| ----------- | ---- | -------- | ------ | -------------- | ---------- |
+| book_id     | int  | 否       | 自增   | 联合主键，外键 | 图书编号   |
+| category_id | int  | 否       | 无     | 联合主键，外键 | 图书分类号 |
 
-### **4. 图书类别表 `bookCategory`**
-#### **字段说明**
-| 字段名        | 数据类型    | 约束               | 说明         |
-| ------------- | ----------- | ------------------ | ------------ |
-| `category_id` | INT         | PK, AUTO_INCREMENT | 图书分类号   |
-| `category`    | VARCHAR(20) | NOT NULL, UNIQUE   | 图书类别名称 |
+## 7. author（作者表）
 
-#### **主键与外键**
-- **主键**：`category_id`。
-- **唯一约束**：`category` 确保类别名称唯一。
+| 字段名    | 类型         | 允许NULL | 默认值 | 键     | 注释     |
+| --------- | ------------ | -------- | ------ | ------ | -------- |
+| author_id | int          | 否       | 自增   | 主键   | 作者编号 |
+| author    | varchar(255) | 否       | 无     | 唯一键 | 作者名字 |
 
----
+## 8. bookAuthorRelation（图书-作者关系表）
 
-### **5. 作者表 `author`**
-#### **字段说明**
-| 字段名      | 数据类型     | 约束               | 说明     |
-| ----------- | ------------ | ------------------ | -------- |
-| `author_id` | INT          | PK, AUTO_INCREMENT | 作者编号 |
-| `author`    | VARCHAR(255) | NOT NULL, UNIQUE   | 作者姓名 |
+| 字段名    | 类型 | 允许NULL | 默认值 | 键             | 注释     |
+| --------- | ---- | -------- | ------ | -------------- | -------- |
+| book_id   | int  | 否       | 自增   | 联合主键       | 图书编号 |
+| author_id | int  | 否       | 无     | 联合主键，外键 | 作者编号 |
 
-#### **主键与外键**
-- **主键**：`author_id`。
-- **唯一约束**：`author` 字段确保作者姓名唯一。
+## 9. borrow_record（借阅记录表）
 
----
+| 字段名       | 类型 | 允许NULL | 默认值 | 键            | 注释         |
+| ------------ | ---- | -------- | ------ | ------------- | ------------ |
+| record_id    | int  | 否       | 自增   | 主键          | 借阅记录编号 |
+| borrower_id  | int  | 否       | 无     | 外键:borrower | 借阅人证件号 |
+| book_id      | int  | 否       | 无     | 外键:book     | 图书编号     |
+| borrow_date  | date | 否       | 无     |               | 借出日期     |
+| due_date     | date | 否       | 无     |               | 应归还日期   |
+| is_return    | bool | 否       | FALSE  |               | 是否归还     |
+| return_date  | date | 是       | NULL   |               | 实际归还日期 |
+| overdue_days | int  | 是       | NULL   |               | 逾期天数     |
 
-### **6. 出版社表 `publisher`**
-#### **字段说明**
-| 字段名         | 数据类型     | 约束               | 说明       |
-| -------------- | ------------ | ------------------ | ---------- |
-| `publisher_id` | INT          | PK, AUTO_INCREMENT | 出版社编号 |
-| `publisher`    | VARCHAR(255) | NOT NULL, UNIQUE   | 出版社名称 |
+## 10. fine_record（罚款记录表）
 
-#### **主键与外键**
-- **主键**：`publisher_id`。
-- **唯一约束**：`publisher` 确保出版社名称唯一。
-
----
-
-### **7. 借阅记录表 `borrow_record`**
-#### **字段说明**
-
-| 字段名         | 数据类型 | 约束                          | 说明         |
-| -------------- | -------- | ----------------------------- | ------------ |
-| `record_id`    | INT      | PK, AUTO_INCREMENT, UNIQUE    | 借阅记录编号 |
-| `borrower_id`  | INT      | NOT NULL, FK → `borrower.id`  | 借阅人证件号 |
-| `book_id`      | INT      | NOT NULL, FK → `book.book_id` | 图书编号     |
-| `borrow_date`  | DATE     | NOT NULL                      | 借出日期     |
-| `due_date`     | DATE     | NOT NULL                      | 应归还日期   |
-| `is_return`    | BOOLEAN  | NOT NULL DEFAULT FALSE        | 是否归还     |
-| `return_date`  | DATE     | NULL                          | 实际归还日期 |
-| `overdue_days` | INT      | NULL                          | 逾期天数     |
-
-#### **主键与外键**
-- **主键**：`record_id`。
-- **外键**：
-  - `borrower_id` → `borrower.id`
-  - `book_id` → `book.book_id`
-
+| 字段名       | 类型 | 允许NULL | 默认值 | 键                 | 注释                 |
+| ------------ | ---- | -------- | ------ | ------------------ | -------------------- |
+| fine_id      | int  | 否       | 自增   | 主键               | 罚款记录编号         |
+| record_id    | int  | 否       | 无     | 外键:borrow_record | 借阅记录编号         |
+| borrower_id  | int  | 否       | 无     | 外键:borrower      | 借阅人证件号         |
+| book_id      | int  | 否       | 无     | 外键:book          | 图书编号             |
+| borrow_date  | date | 否       | 无     |                    | 借出日期             |
+| due_date     | date | 否       | 无     |                    | 应归还日期           |
+| overdue_days | int  | 是       | NULL   |                    | 逾期天数             |
+| is_return    | bool | 否       | FALSE  |                    | 是否归还             |
+| fine         | int  | 否       | 无     |                    | 罚款金额（单位：分） |
+| is_pay       | bool | 否       | FALSE  |                    | 是否缴纳罚款         |
