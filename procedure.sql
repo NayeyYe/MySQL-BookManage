@@ -57,7 +57,7 @@ delimiter ;
 # 查找一个人的罚款记录
 drop procedure if exists select_fine_record;
 delimiter //
-create procedure if not exists select_fine_record(in target_name int)
+create procedure if not exists select_fine_record(in target_name varchar(255))
 begin
     select fine_record.fine_id as 罚款记录id,
            fine_record.record_id as 借阅记录id,

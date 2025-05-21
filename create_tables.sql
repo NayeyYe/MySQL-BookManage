@@ -5,6 +5,19 @@ use BookManage;
 show tables ;
 # ---------------------- 创建数据表 ----------------------
 SET FOREIGN_KEY_CHECKS = 0;
+
+
+# 借阅规则
+drop table if exists category;
+create table if not exists category(
+                                       category_id int auto_increment comment '身份类型代码',
+                                       category enum('学生', '教师', '校外人员', '管理员') unique comment '用户类别',
+                                       max_borrowed_books int not null comment '最大可借阅书籍量',
+                                       borrow_period int not null comment '借阅期限',
+                                       primary key(category_id)
+);
+
+
 # 创建借阅人表
 drop table if exists borrower;
 create table if not exists borrower(
@@ -19,15 +32,15 @@ create table if not exists borrower(
     foreign key (category_id) references category(category_id)
 );
 
-# 借阅规则
-drop table if exists category;
-create table if not exists category(
-    category_id int auto_increment comment '身份类型代码',
-    category enum('学生', '教师', '校外人员', '管理员') unique comment '用户类别',
-    max_borrowed_books int not null comment '最大可借阅书籍量',
-    borrow_period int not null comment '借阅期限',
-    primary key(category_id)
+
+# 出版社表
+drop table if exists publisher;
+create table if not exists publisher(
+                                        publisher_id int not null auto_increment comment '出版社编号',
+                                        publisher varchar(255) unique not null comment '出版社名字',
+                                        primary key (publisher_id)
 );
+
 
 # 图书表
 drop table if exists book;
@@ -80,16 +93,9 @@ create table if not exists bookAuthorRelation(
     foreign key (author_id) references author(author_id)
 );
 
-# 出版社表
-drop table if exists publisher;
-create table if not exists publisher(
-    publisher_id int not null auto_increment comment '出版社编号',
-    publisher varchar(255) unique not null comment '出版社名字',
-    primary key (publisher_id)
-);
 
 # 借阅记录
-drop table if exists borrower_record;
+drop table if exists borrow_record;
 create table if not exists borrow_record(
     record_id int not null unique auto_increment comment '借阅记录编号',
     borrower_id int not null comment '借阅人证件号',
