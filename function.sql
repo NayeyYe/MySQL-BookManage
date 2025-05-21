@@ -29,7 +29,7 @@ begin
     where id in (select borrower_id
                  from borrow_record
                  where is_return=FALSE and
-                     book_id = (select book_id from book where title = target_book) limit 1);
+                     book_id = (select book_id from book where title = target_book limit 1) );
     return borrowers;
 end //
 delimiter ;
