@@ -23,7 +23,7 @@ drop table if exists borrower;
 create table if not exists borrower(
     id int unique auto_increment comment '借阅人证件号',
     name varchar(20) not null comment '借阅人姓名',
-    PhoneNumber varchar(30) not null comment '借阅人电话',
+    PhoneNumber varchar(30) unique not null comment '借阅人电话',
     category_id int not null comment '借阅人身份',
     borrowed_num int default 0 comment '已借阅数目',
     registration_date date not null comment '注册时间',
@@ -86,7 +86,7 @@ create table if not exists author(
 # 图书--作者关系表
 drop table if exists bookAuthorRelation;
 create table if not exists bookAuthorRelation(
-    book_id int auto_increment unique comment '图书编号',
+    book_id int auto_increment comment '图书编号',
     author_id int not null comment '作者编号',
     primary key (book_id, author_id),
     foreign key (book_id) references book(book_id),
