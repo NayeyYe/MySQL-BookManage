@@ -9,27 +9,7 @@ CREATE EVENT IF NOT EXISTS AutoUpdateOverdueAndFines
     ON SCHEDULE EVERY 1 DAY STARTS '2024-01-01 00:00:00'
     DO
     BEGIN
-        -- 更新借阅记录中的逾期天数
-        UPDATE borrow_record
-        SET overdue_days = GREATEST(DATEDIFF(CURDATE(), due_date), 0)
-        WHERE is_return = FALSE;
-        -- 插入新的罚款记录（仅当借阅逾期且未生成罚款时）
-        INSERT INTO fine_record (record_id, borrower_id, book_id, borrow_date, due_date, is_return, fine, is_pay, overdue_days)
-        SELECT
-            br.record_id,
-            br.borrower_id,
-            br.book_id,
-            br.borrow_date,
-            br.due_date,
-            FALSE,
-            0,
-            FALSE,
-            br.overdue_days
-        FROM borrow_record br
-                 LEFT JOIN fine_record fr ON br.record_id = fr.record_id
-        WHERE br.is_return = FALSE
-          AND br.due_date < CURDATE()  -- 已逾期
-          AND fr.record_id IS NULL;    -- 未生成罚款记录
+       call UpdateOverdueAndFines();
     END //
 DELIMITER ;
 
