@@ -51,6 +51,10 @@ BEGIN
     WHERE fr.is_pay = FALSE and b.name = target_name
     GROUP BY fr.borrower_id;
 
-    return fines;
+    if fines is null
+        then return 0;
+    else
+        return fines;
+    end if;
 END //
 DELIMITER ;
