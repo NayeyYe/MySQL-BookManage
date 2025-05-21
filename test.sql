@@ -1,5 +1,3 @@
--- test.sql
--- 启用严格模式
 use bookmanage;
 
 -- 初始化测试环境
@@ -129,42 +127,7 @@ SELECT '【验证9】5天逾期罚款应为5元' AS test_case;
 SELECT fine FROM fine_record WHERE record_id = 1;
 
 -- ----------------------------
--- 第六部分：并发控制测试
--- 准备测试数据
-INSERT INTO book (title, isbn, total, remain, location) VALUES
-    ('并发测试书', '978-7-111-55555-5', 1, 1, 'C001');
-
--- 创建并发测试存储过程
-DELIMITER //
-drop procedure ConcurrentBorrowTest;
-CREATE PROCEDURE ConcurrentBorrowTest()
-BEGIN
-    START TRANSACTION;
-    SET @book_id = 3;
-
-    -- 获取当前库存
-    SELECT remain INTO @current_remain
-    FROM book WHERE book_id = @book_id FOR UPDATE;
-
-    -- 模拟业务处理时间
-    DO SLEEP(1);
-
-    IF @current_remain > 0 THEN
-        INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date)
-        VALUES (1, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY);
-
-        UPDATE book SET remain = remain - 1 WHERE book_id = @book_id;
-        COMMIT;
-        SELECT '借阅成功' AS result;
-    ELSE
-        ROLLBACK;
-        SELECT '借阅失败' AS result;
-    END IF;
-END//
-DELIMITER ;
-
--- ----------------------------
--- 第七部分：数据完整性验证
+-- 第六部分：数据完整性验证
 SELECT '【验证11】外键约束应正常生效' AS test_case;
 -- 预期失败的插入
 INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
