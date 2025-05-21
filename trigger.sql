@@ -17,7 +17,7 @@ BEGIN
     SET remain = remain - 1
     WHERE book_id = NEW.book_id;
 
-    call update_is_can_borrow(borrower_id);
+    call update_is_can_borrow(NEW.borrower_id);
 
 END//
 delimiter ;
@@ -42,7 +42,6 @@ BEGIN
 
     END IF;
 
-    call update_is_can_borrow(borrower_id);
+    call update_is_can_borrow(NEW.borrower_id);
 END//
 delimiter ;
-
