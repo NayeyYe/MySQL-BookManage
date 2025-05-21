@@ -1,6 +1,6 @@
 # ---------------------- 创建数据库 ----------------------
-drop database BookManage;
-create database BookManage;
+drop database if exists BookManage;
+create database if not exists bookmanage;
 use BookManage;
 show tables ;
 # ---------------------- 创建数据表 ----------------------
