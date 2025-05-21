@@ -31,12 +31,6 @@ SET @test_name = '测试用户1';
 -- 插入第一个借阅人
 INSERT INTO borrower (name, PhoneNumber, category_id, registration_date)
 VALUES (@test_name, '13800000001', 1, CURDATE());
-SET @borrower_id1 = LAST_INSERT_ID();  -- ✅ 正确获取第一个ID
-
--- 插入第二个借阅人
-INSERT INTO borrower (name, PhoneNumber, category_id, registration_date)
-VALUES ('测试用户2', '13800000002', 2, CURDATE());
-SET @borrower_id2 = LAST_INSERT_ID();  -- ✅ 正确获取第二个ID
 
 
 INSERT INTO book (title, isbn, publisher_id, publication_year, total, remain, location) VALUES
@@ -57,15 +51,16 @@ INSERT INTO bookCategoryRelation (book_id, category_id) VALUES
 -- 第三部分：功能验证
 -- ----------------------------
 -- 验证测试1：正常借书流程
-SET @borrower_id = LAST_INSERT_ID()-1;  -- 测试用户1
+SET @borrower_id = LAST_INSERT_ID();  -- 测试用户1
 SET @book_id = 1;
 
 -- 执行借书
 -- 使用正确的借阅人ID变量
 INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
-                                                                            (@borrower_id1, 1, CURDATE(), CURDATE() + INTERVAL 14 DAY),  -- ✅ 使用第一个借阅人
-                                                                            (@borrower_id1, 2, CURDATE(), CURDATE() + INTERVAL 30 DAY);   -- ✅ 使用第二个借阅人
-
+                                                                            (@borrower_id, 1, CURDATE(), CURDATE() + INTERVAL 14 DAY),  -- ✅ 使用第一个借阅人
+                                                                            (@borrower_id, 2, CURDATE(), CURDATE() + INTERVAL 30 DAY);   -- ✅ 使用第二个借阅人
+select * from borrower;
+select * from book;
 
 -- 验证触发器生效
 SELECT '【验证1】借书后图书剩余量应为4' AS test_case;
@@ -78,25 +73,31 @@ SELECT borrowed_num FROM borrower WHERE id = @borrower_id;
 -- 测试用例2：借阅限制测试
 -- 尝试借阅超过限额
 INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
-                                                                            (@borrower_id1, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY),
-                                                                            (@borrower_id1, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY),
-                                                                            (@borrower_id1, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY);
-
+                                                                            (@borrower_id, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY),
+                                                                            (@borrower_id, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY),
+                                                                            (@borrower_id, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY);
+select * from borrower;
 SELECT '【验证3】当借阅达到上限时应禁止借书' AS test_case;
 SELECT is_can_borrow FROM borrower WHERE id = @borrower_id;
 
 -- ----------------------------
 -- 测试用例3：还书流程测试
 -- 先更新为已归还
+select * from borrow_record;
+select * from book where book_id=1;
 UPDATE borrow_record SET
                          is_return = TRUE,
                          return_date = CURDATE()
 WHERE record_id = 1;
+select * from borrow_record;
+select * from book where book_id=1;
+select * from borrower;
 
-SELECT '【验证4】还书后图书剩余量恢复为5' AS test_case;
+
+SELECT '【验证4】还书后图书剩余量恢复为2' AS test_case;
 SELECT remain FROM book WHERE book_id = @book_id;
 
-SELECT '【验证5】借阅人已借数量应减为0' AS test_case;
+SELECT '【验证5】借阅人已借数量应减为4' AS test_case;
 SELECT borrowed_num FROM borrower WHERE id = @borrower_id;
 
 -- ----------------------------
@@ -116,8 +117,9 @@ UPDATE borrow_record SET
                          is_return = FALSE,
                          due_date = DATE_SUB(CURDATE(), INTERVAL 5 DAY)
 WHERE record_id = 1;
-
+select * from borrow_record;
 -- 手动触发罚款计算事件
+call UpdateOverdueAndFines();
 CALL DailyCalculateFines();
 
 SELECT '【验证8】应生成罚款记录' AS test_case;
@@ -134,6 +136,7 @@ INSERT INTO book (title, isbn, total, remain, location) VALUES
 
 -- 创建并发测试存储过程
 DELIMITER //
+drop procedure ConcurrentBorrowTest;
 CREATE PROCEDURE ConcurrentBorrowTest()
 BEGIN
     START TRANSACTION;
@@ -160,9 +163,6 @@ BEGIN
 END//
 DELIMITER ;
 
--- 在多个连接中同时执行（需手动测试）
--- SELECT '【验证10】并发测试需在多个会话中执行CALL ConcurrentBorrowTest()' AS note;
-
 -- ----------------------------
 -- 第七部分：数据完整性验证
 SELECT '【验证11】外键约束应正常生效' AS test_case;
@@ -174,5 +174,3 @@ INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
 -- 清理测试数据
 ROLLBACK;  -- 回滚所有测试数据
 
--- 显示最终验证结果
-SELECT '所有测试执行完成，请查看上方验证点的实际输出是否符合预期' AS final_check;
