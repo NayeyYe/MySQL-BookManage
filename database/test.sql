@@ -55,8 +55,8 @@ SET @book_id = 1;
 -- 执行借书
 -- 使用正确的借阅人ID变量
 INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
-                                                                            (@borrower_id, 1, CURDATE(), CURDATE() + INTERVAL 14 DAY),  -- ✅ 使用第一个借阅人
-                                                                            (@borrower_id, 2, CURDATE(), CURDATE() + INTERVAL 30 DAY);   -- ✅ 使用第二个借阅人
+                                                                            (@borrower_id, 1, CURDATE(), CURDATE() + INTERVAL 14 DAY),
+                                                                            (@borrower_id, 2, CURDATE(), CURDATE() + INTERVAL 30 DAY);
 select * from borrower;
 select * from book;
 
@@ -64,7 +64,7 @@ select * from book;
 SELECT '【验证1】借书后图书剩余量应为4' AS test_case;
 SELECT remain FROM book WHERE book_id = @book_id;
 
-SELECT '【验证2】借阅人已借数量应为1' AS test_case;
+SELECT '【验证2】借阅人已借数量应为2' AS test_case;
 SELECT borrowed_num FROM borrower WHERE id = @borrower_id;
 
 -- ----------------------------
