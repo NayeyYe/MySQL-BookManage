@@ -16,6 +16,11 @@ create table if not exists category(
                                        borrow_period int not null comment '借阅期限',
                                        primary key(category_id)
 );
+INSERT INTO category (category, max_borrowed_books, borrow_period)
+values ( '学生', 10, 30),
+       ('教师', 20, 60),
+       ('校外人员', 5, 14),
+       ('管理员', 50, 90);
 
 
 # 创建借阅人表
