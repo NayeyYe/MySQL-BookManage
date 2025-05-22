@@ -63,7 +63,7 @@ DELIMITER ;
 
 #  判断一个人的信息是否存在于学生/教师表中，用于注册系统
 DELIMITER //
-CREATE FUNCTION check_identity_exists(
+CREATE FUNCTION check_identity_exists_in_origin(
     p_id VARCHAR(13),       -- 输入ID（支持13位学生ID或8位教师ID）
     p_name VARCHAR(50),     -- 姓名
     p_identity_id TINYINT   -- 身份标识（1学生 2教师）
@@ -98,3 +98,22 @@ BEGIN
 END//
 DELIMITER ;
 
+
+#  判断一个人的信息是否已经存在
+DELIMITER //
+CREATE FUNCTION check_identity_exists_in_borrower(
+    p_name VARCHAR(50),
+    p_phonenumber TINYINT
+)
+    RETURNS BOOLEAN
+    DETERMINISTIC
+    READS SQL DATA
+BEGIN
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+    # 查看表中是否有这个人
+    select count(*) into v_exists from borrower where PhoneNumber=p_phonenumber and p_name=name;
+
+
+    RETURN v_exists > 0;
+END//
+DELIMITER ;
