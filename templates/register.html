@@ -1,10 +1,121 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>用户注册 - 图书管理系统</title>
+    <link rel="stylesheet" href="/static/register.css">
 </head>
 <body>
+    <div class="register-container">
+        <div class="register-card">
+            <h2 class="register-title">📝 用户注册</h2>
 
+            <form id="registerForm" class="register-form">
+                <!-- 身份选择 -->
+                <div class="form-group">
+                    <label for="userType">注册身份</label>
+                    <select id="userType" class="form-control" required>
+                        <option value="">请选择身份</option>
+                        <option value="teacher">教师</option>
+                        <option value="student">学生</option>
+                        <option value="visitor">校外人员</option>
+                    </select>
+                </div>
+
+                <!-- 动态输入区域 -->
+                <div class="dynamic-inputs">
+                    <!-- 教师 -->
+                    <div id="teacherInput" class="input-group hidden">
+                        <div class="form-group">
+                            <label for="staffId">职工ID</label>
+                            <input type="text" id="staffId" class="form-control"
+                                   pattern="\d{8,10}"
+                                   placeholder="请输入8-10位职工ID">
+                        </div>
+                        <div class="form-group">
+                            <label for="teacherPhone">手机号</label>
+                            <input type="tel" id="teacherPhone" class="form-control"
+                                   pattern="1[3-9]\d{9}"
+                                   placeholder="请输入11位手机号">
+                        </div>
+                    </div>
+
+                    <!-- 学生 -->
+                    <div id="studentInput" class="input-group hidden">
+                        <div class="form-group">
+                            <label for="studentId">学号</label>
+                            <input type="text" id="studentId" class="form-control"
+                                   pattern="\d{10,12}"
+                                   placeholder="请输入10-12位学号">
+                        </div>
+                        <div class="form-group">
+                            <label for="studentPhone">手机号</label>
+                            <input type="tel" id="studentPhone" class="form-control"
+                                   pattern="1[3-9]\d{9}"
+                                   placeholder="请输入11位手机号">
+                        </div>
+                    </div>
+
+                    <!-- 校外人员 -->
+                    <div id="visitorInput" class="input-group hidden">
+                        <div class="form-group">
+                            <label for="visitorPhone">手机号</label>
+                            <input type="tel" id="visitorPhone" class="form-control"
+                                   pattern="1[3-9]\d{9}"
+                                   placeholder="请输入11位手机号">
+                        </div>
+                    </div>
+
+                    <!-- 公共密码字段 -->
+                    <div class="form-group">
+                        <label for="password">密码</label>
+                        <input type="password" id="password" class="form-control"
+                               required minlength="6"
+                               placeholder="请输入密码（至少6位）">
+                    </div>
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="submit-btn">立即注册</button>
+                    <div class="links">
+                        <a href="index.html">返回首页</a>
+                        <a href="login.html">已有账号？立即登录</a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('userType').addEventListener('change', function() {
+            const type = this.value;
+
+            // 隐藏所有输入组并清除必填
+            document.querySelectorAll('.input-group').forEach(group => {
+                group.classList.add('hidden');
+                group.querySelectorAll('input').forEach(input => {
+                    input.removeAttribute('required');
+                });
+            });
+
+            // 显示对应输入组并设置必填
+            switch(type) {
+                case 'teacher':
+                    document.getElementById('teacherInput').classList.remove('hidden');
+                    document.getElementById('staffId').setAttribute('required', '');
+                    document.getElementById('teacherPhone').setAttribute('required', '');
+                    break;
+                case 'student':
+                    document.getElementById('studentInput').classList.remove('hidden');
+                    document.getElementById('studentId').setAttribute('required', '');
+                    document.getElementById('studentPhone').setAttribute('required', '');
+                    break;
+                case 'visitor':
+                    document.getElementById('visitorInput').classList.remove('hidden');
+                    document.getElementById('visitorPhone').setAttribute('required', '');
+                    break;
+            }
+        });
+    </script>
 </body>
 </html>
