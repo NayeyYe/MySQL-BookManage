@@ -25,6 +25,7 @@ create table if not exists borrower(
     name varchar(20) not null comment '借阅人姓名',
     PhoneNumber varchar(30) unique not null comment '借阅人电话',
     category_id int not null comment '借阅人身份',
+    origin_id varchar(13) null comment '学生ID或者教职工ID',
     borrowed_num int default 0 comment '已借阅数目',
     registration_date date not null comment '注册时间',
     is_can_borrow bool not null default TRUE comment '是否可以借书',
