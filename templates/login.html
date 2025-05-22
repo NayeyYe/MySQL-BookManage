@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>图书管理系统 - 登录</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1 class="system-title">图书管理系统</h1>
+        <form class="login-form">
+            <!-- 身份选择 -->
+            <div class="form-group">
+                <select id="userType" class="form-control" onchange="changeLoginForm()">
+                    <option value="student">学生</option>
+                    <option value="teacher">教师</option>
+                    <option value="visitor">校外人员</option>
+                    <option value="admin">管理员</option>
+                </select>
+            </div>
+
+            <!-- 动态表单区域 -->
+            <div id="inputFields">
+                <!-- 学生登录 -->
+                <div class="form-group student-form">
+                    <input type="text" id="studentId" name="student_id" class="form-control" placeholder="请输入学号" required>
+                </div>
+
+                <!-- 教师/校外人员登录 -->
+                <div class="form-group teacher-visitor-form hidden">
+                    <input type="tel" id="phone" name="phone" class="form-control" placeholder="请输入手机号" pattern="1[3-9]\d{9}" required>
+                </div>
+
+                <!-- 管理员登录 -->
+                <div class="form-group admin-form hidden">
+                    <input type="text" id="adminAccount" name="admin_account" class="form-control" placeholder="请输入管理员账号" required>
+                </div>
+
+                <!-- 公共密码字段 -->
+                <div class="form-group">
+                    <input type="password" id="password" name="password" class="form-control" placeholder="请输入密码" required>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-button login-btn">立即登录</button>
+        </form>
+    </div>
+
+    <script>
+        function changeLoginForm() {
+            const userType = document.getElementById('userType').value;
+            const forms = document.querySelectorAll('#inputFields .form-group:not(:last-child)');
+
+            // 隐藏所有表单组
+            forms.forEach(form => form.classList.add('hidden'));
+
+            // 根据身份显示对应表单
+            if (userType === 'student') {
+                document.querySelector('.student-form').classList.remove('hidden');
+            } else if (userType === 'teacher' || userType === 'visitor') {
+                document.querySelector('.teacher-visitor-form').classList.remove('hidden');
+            } else if (userType === 'admin') {
+                document.querySelector('.admin-form').classList.remove('hidden');
+            }
+
+            // 自动聚焦输入框
+            setTimeout(() => {
+                document.querySelector('#inputFields .form-control:not(.hidden)').focus();
+            }, 50);
+        }
+
+        // 初始化时显示学生表单
+        window.onload = changeLoginForm;
+    </script>
+</body>
+</html>
