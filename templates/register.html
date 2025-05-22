@@ -142,6 +142,52 @@
                 document.getElementById(id).setAttribute('required', '');
             });
         }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                name: document.getElementById('name').value,
+                userType: document.getElementById('userType').value,
+                password: document.getElementById('password').value
+            };
+
+            // 根据身份类型收集不同字段
+            switch(formData.userType) {
+                case 'teacher':
+                    formData.staffId = document.getElementById('staffId').value;
+                    formData.teacherPhone = document.getElementById('teacherPhone').value;
+                    break;
+                case 'student':
+                    formData.studentId = document.getElementById('studentId').value;
+                    formData.studentPhone = document.getElementById('studentPhone').value;
+                    break;
+                case 'visitor':
+                    formData.visitorPhone = document.getElementById('visitorPhone').value;
+                    break;
+            }
+
+            try {
+                const response = await fetch('/register.html', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('注册成功！');
+                    window.location.href = "{{ url_for('index') }}";
+                } else {
+                    alert(`注册失败：${result.message}`);
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        });
+
     </script>
 </body>
 </html>
