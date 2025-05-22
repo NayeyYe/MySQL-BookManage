@@ -201,3 +201,98 @@ begin
       AND fr.record_id IS NULL;    -- 未生成罚款记录
 end //
 delimiter ;
+
+
+# 注册学生用户或者教师用户
+DELIMITER //
+CREATE PROCEDURE register_identity_user(
+    IN p_name VARCHAR(50),        -- 姓名
+    IN p_phone VARCHAR(20),       -- 手机号
+    IN p_category TINYINT,        -- 身份类型（1学生 2教师）
+    IN p_origin_id VARCHAR(20),    -- 原始ID（学号/工号）
+    IN p_pwd_hash varchar(255)
+)
+BEGIN
+    DECLARE v_valid BOOLEAN;
+
+    -- 验证身份合法性
+    SELECT check_identity_exists_in_origin(p_origin_id, p_name, p_category)
+    INTO v_valid;
+
+    IF NOT v_valid THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '身份验证失败：ID与姓名不匹配';
+    END IF;
+
+    -- 检查手机号是否重复
+    SELECT check_identity_exists_in_borrower(p_name, p_phone)
+    INTO v_valid;
+    IF NOT v_valid THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '用户已被注册';
+    END IF;
+
+    -- 插入用户数据
+    INSERT INTO borrower
+    (name, PhoneNumber, category_id, origin_id, registration_date)
+    VALUES
+    (p_name, p_phone, p_category, p_origin_id, current_date);
+
+    insert into user_info(id, password_hash) values (LAST_INSERT_ID(), p_pwd_hash);
+END//
+DELIMITER ;
+
+
+# 校外人员注册
+DELIMITER //
+CREATE PROCEDURE register_external_user(
+    IN p_name VARCHAR(50),        -- 姓名
+    IN p_phone VARCHAR(20),       -- 手机号
+    IN p_category TINYINT         -- 身份类型（3为校外用户）
+    IN p_pwd_hash varchar(255)
+)
+BEGIN
+    declare v_valid boolean;
+    -- 检查手机号是否重复
+    SELECT check_identity_exists_in_borrower(p_name, p_phone)
+    INTO v_valid;
+    IF NOT v_valid THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '用户已被注册';
+    END IF;
+
+    -- 插入用户数据（origin_id置空）
+    INSERT INTO borrower
+    (name, PhoneNumber, category_id, origin_id, registration_date)
+    VALUES
+    (p_name, p_phone, p_category, NULL, current_date);
+
+    insert into user_info(id, password_hash) values (LAST_INSERT_ID(), p_pwd_hash);
+END//
+DELIMITER ;
+
+
+# 两个注册存储过程的集合
+DELIMITER //
+CREATE PROCEDURE register_user(
+    IN p_name VARCHAR(50),
+    IN p_phone VARCHAR(20),
+    IN p_category TINYINT,
+    IN p_origin_id VARCHAR(20) -- 可为NULL
+)
+BEGIN
+    -- 参数有效性检查
+    IF p_category IN (1,2) AND p_origin_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '学生/教师必须提供原始ID';
+    END IF;
+
+    -- 路由到对应注册逻辑
+    CASE
+        WHEN p_category IN (1,2) THEN
+            CALL register_identity_user(p_name, p_phone, p_category, p_origin_id);
+        ELSE
+            CALL register_external_user(p_name, p_phone, p_category);
+    END CASE;
+END//
+DELIMITER ;
