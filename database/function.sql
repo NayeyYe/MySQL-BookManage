@@ -1,4 +1,5 @@
 use BookManage;
+show tables ;
 set global log_bin_trust_function_creators =TRUE;
 # ------------------ 创建储存函数 ---------------------
 # 查找某人有多少罚款记录
@@ -58,3 +59,42 @@ BEGIN
     end if;
 END //
 DELIMITER ;
+
+
+#  判断一个人的信息是否存在于学生/教师表中，用于注册系统
+DELIMITER //
+CREATE FUNCTION check_identity_exists(
+    p_id VARCHAR(13),       -- 输入ID（支持13位学生ID或8位教师ID）
+    p_name VARCHAR(50),     -- 姓名
+    p_identity_id TINYINT   -- 身份标识（1学生 2教师）
+)
+    RETURNS BOOLEAN
+    DETERMINISTIC
+    READS SQL DATA
+BEGIN
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+
+    -- 根据身份类型选择查询对应表
+    CASE p_identity_id
+        WHEN 1 THEN  -- 学生验证
+        SELECT COUNT(*) INTO v_exists
+        FROM student
+        WHERE stu_id = p_id
+          AND name = p_name
+        LIMIT 1;
+
+        WHEN 2 THEN  -- 教师验证
+        SELECT COUNT(*) INTO v_exists
+        FROM teacher
+        WHERE id = LEFT(p_id, 8)  -- 教师ID固定8位
+          AND name = p_name
+        LIMIT 1;
+
+        ELSE
+            SET v_exists = FALSE;
+        END CASE;
+
+    RETURN v_exists > 0;
+END//
+DELIMITER ;
+
