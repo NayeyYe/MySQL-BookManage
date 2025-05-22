@@ -103,7 +103,7 @@ DELIMITER ;
 DELIMITER //
 CREATE FUNCTION check_identity_exists_in_borrower(
     p_name VARCHAR(50),
-    p_phonenumber TINYINT
+    p_phonenumber varchar(20)
 )
     RETURNS BOOLEAN
     DETERMINISTIC
@@ -111,7 +111,7 @@ CREATE FUNCTION check_identity_exists_in_borrower(
 BEGIN
     DECLARE v_exists BOOLEAN DEFAULT FALSE;
     # 查看表中是否有这个人
-    select count(*) into v_exists from borrower where PhoneNumber=p_phonenumber and p_name=name;
+    select count(*) into v_exists from borrower where PhoneNumber=p_phonenumber and name=p_name;
 
 
     RETURN v_exists > 0;

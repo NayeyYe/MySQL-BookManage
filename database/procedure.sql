@@ -248,7 +248,7 @@ DELIMITER //
 CREATE PROCEDURE register_external_user(
     IN p_name VARCHAR(50),        -- 姓名
     IN p_phone VARCHAR(20),       -- 手机号
-    IN p_category TINYINT         -- 身份类型（3为校外用户）
+    IN p_category TINYINT,         -- 身份类型（3为校外用户）
     IN p_pwd_hash varchar(255)
 )
 BEGIN
@@ -278,7 +278,8 @@ CREATE PROCEDURE register_user(
     IN p_name VARCHAR(50),
     IN p_phone VARCHAR(20),
     IN p_category TINYINT,
-    IN p_origin_id VARCHAR(20) -- 可为NULL
+    IN p_origin_id VARCHAR(20), -- 可为NULL
+    IN p_pwd_hash varchar(255)
 )
 BEGIN
     -- 参数有效性检查
@@ -290,9 +291,9 @@ BEGIN
     -- 路由到对应注册逻辑
     CASE
         WHEN p_category IN (1,2) THEN
-            CALL register_identity_user(p_name, p_phone, p_category, p_origin_id);
+            CALL register_identity_user(p_name, p_phone, p_category, p_origin_id, p_pwd_hash);
         ELSE
-            CALL register_external_user(p_name, p_phone, p_category);
+            CALL register_external_user(p_name, p_phone, p_category, p_pwd_hash);
     END CASE;
 END//
 DELIMITER ;

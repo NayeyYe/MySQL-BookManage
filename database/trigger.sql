@@ -18,7 +18,7 @@ BEGIN
     FROM borrow_record
     WHERE borrower_id = NEW.borrower_id
       AND book_id = NEW.book_id
-      AND not is_return;  -- 防止并发插入
+      AND not is_return;
 
     IF existing_borrow > 0 THEN
         SIGNAL SQLSTATE '45000'
@@ -29,7 +29,7 @@ BEGIN
     -- 检查图书剩余量
     SELECT remain INTO current_remain
     FROM book
-    WHERE book_id = NEW.book_id for update ;
+    WHERE book_id = NEW.book_id;
 
     IF current_remain <= 0 THEN
         SIGNAL SQLSTATE '45000'
@@ -40,7 +40,7 @@ BEGIN
     SELECT is_can_borrow, category.max_borrowed_books INTO current_is_can_borrow, max_allowed
     FROM borrower
              JOIN category ON borrower.category_id = category.category_id
-    WHERE borrower.id = NEW.borrower_id for update ;
+    WHERE borrower.id = NEW.borrower_id;
 
     IF NOT current_is_can_borrow THEN
         SIGNAL SQLSTATE '45000'

@@ -43,7 +43,8 @@ create table if not exists borrower(
 drop table if exists user_info;
 create table if not exists user_info(
     id int comment '账号',
-    password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt密码哈希'
+    password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt密码哈希',
+    foreign key (id) references borrower(id)
 );
 
 
