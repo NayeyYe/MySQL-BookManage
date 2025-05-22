@@ -25,23 +25,69 @@
 
                 <!-- 动态输入区域 -->
                 <div class="dynamic-inputs">
-                    <!-- 教师/校外人员 -->
-                    <div id="phoneInput" class="input-group hidden">
-                        <div class="form-group">
-                            <label for="phone">手机号</label>
-                            <input type="tel" id="phone" class="form-control"
-                                   pattern="1[3-9]\d{9}"
-                                   placeholder="请输入11位手机号">
+                    <!-- 教师登录方式 -->
+                    <div id="teacherInput" class="input-group hidden">
+                        <div class="login-method">
+                            <label class="method-option">
+                                <input type="radio" name="teacherMethod" value="staffId" checked>
+                                职工ID登录
+                            </label>
+                            <label class="method-option">
+                                <input type="radio" name="teacherMethod" value="phone">
+                                手机号登录
+                            </label>
+                        </div>
+                        <div class="method-inputs">
+                            <div id="teacherStaffId" class="form-group">
+                                <label for="staffId">职工ID</label>
+                                <input type="text" id="staffId" class="form-control"
+                                       pattern="\d{8,10}"
+                                       placeholder="8-10位职工ID">
+                            </div>
+                            <div id="teacherPhone" class="form-group hidden">
+                                <label for="tPhone">手机号</label>
+                                <input type="tel" id="tPhone" class="form-control"
+                                       pattern="1[3-9]\d{9}"
+                                       placeholder="11位手机号">
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 学生 -->
+                    <!-- 学生登录方式 -->
                     <div id="studentInput" class="input-group hidden">
+                        <div class="login-method">
+                            <label class="method-option">
+                                <input type="radio" name="studentMethod" value="studentId" checked>
+                                学号登录
+                            </label>
+                            <label class="method-option">
+                                <input type="radio" name="studentMethod" value="phone">
+                                手机号登录
+                            </label>
+                        </div>
+                        <div class="method-inputs">
+                            <div id="studentIdInput" class="form-group">
+                                <label for="sId">学号</label>
+                                <input type="text" id="sId" class="form-control"
+                                       pattern="\d{10,12}"
+                                       placeholder="10-12位学号">
+                            </div>
+                            <div id="studentPhone" class="form-group hidden">
+                                <label for="sPhone">手机号</label>
+                                <input type="tel" id="sPhone" class="form-control"
+                                       pattern="1[3-9]\d{9}"
+                                       placeholder="11位手机号">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 校外人员 -->
+                    <div id="visitorInput" class="input-group hidden">
                         <div class="form-group">
-                            <label for="studentId">学号</label>
-                            <input type="text" id="studentId" class="form-control"
-                                   pattern="\d{10,12}"
-                                   placeholder="请输入10-12位学号">
+                            <label for="vPhone">手机号</label>
+                            <input type="tel" id="vPhone" class="form-control"
+                                   pattern="1[3-9]\d{9}"
+                                   placeholder="11位手机号">
                         </div>
                     </div>
 
@@ -50,7 +96,7 @@
                         <div class="form-group">
                             <label for="adminAccount">管理员账号</label>
                             <input type="text" id="adminAccount" class="form-control"
-                                   placeholder="请输入管理员账号">
+                                   placeholder="管理员账号">
                         </div>
                     </div>
 
@@ -59,7 +105,7 @@
                         <label for="password">密码</label>
                         <input type="password" id="password" class="form-control"
                                required minlength="6"
-                               placeholder="请输入密码（至少6位）">
+                               placeholder="至少6位密码">
                     </div>
                 </div>
 
@@ -75,32 +121,80 @@
     </div>
 
     <script>
+        // 处理身份切换
         document.getElementById('userType').addEventListener('change', function() {
             const type = this.value;
 
             // 隐藏所有输入组
             document.querySelectorAll('.input-group').forEach(group => {
                 group.classList.add('hidden');
-                group.querySelector('input').removeAttribute('required');
+                group.querySelectorAll('input').forEach(input => {
+                    input.removeAttribute('required');
+                });
             });
 
             // 显示对应输入组并设置必填
             switch(type) {
                 case 'teacher':
-                case 'visitor':
-                    document.getElementById('phoneInput').classList.remove('hidden');
-                    document.getElementById('phone').setAttribute('required', '');
+                    showTeacherInputs();
                     break;
                 case 'student':
-                    document.getElementById('studentInput').classList.remove('hidden');
-                    document.getElementById('studentId').setAttribute('required', '');
+                    showStudentInputs();
+                    break;
+                case 'visitor':
+                    showVisitorInputs();
                     break;
                 case 'admin':
-                    document.getElementById('adminInput').classList.remove('hidden');
-                    document.getElementById('adminAccount').setAttribute('required', '');
+                    showAdminInputs();
                     break;
             }
         });
+
+        // 教师登录方式切换
+        document.querySelectorAll('[name="teacherMethod"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.getElementById('teacherStaffId').classList.toggle('hidden', radio.value !== 'staffId');
+                document.getElementById('teacherPhone').classList.toggle('hidden', radio.value !== 'phone');
+
+                const input = radio.value === 'staffId' ? 'staffId' : 'tPhone';
+                document.getElementById(input).setAttribute('required', '');
+            });
+        });
+
+        // 学生登录方式切换
+        document.querySelectorAll('[name="studentMethod"]').forEach(radio => {
+            radio.addEventListener('change', () => {
+                document.getElementById('studentIdInput').classList.toggle('hidden', radio.value !== 'studentId');
+                document.getElementById('studentPhone').classList.toggle('hidden', radio.value !== 'phone');
+
+                const input = radio.value === 'studentId' ? 'sId' : 'sPhone';
+                document.getElementById(input).setAttribute('required', '');
+            });
+        });
+
+        function showTeacherInputs() {
+            const group = document.getElementById('teacherInput');
+            group.classList.remove('hidden');
+            document.getElementById('staffId').setAttribute('required', '');
+        }
+
+        function showStudentInputs() {
+            const group = document.getElementById('studentInput');
+            group.classList.remove('hidden');
+            document.getElementById('sId').setAttribute('required', '');
+        }
+
+        function showVisitorInputs() {
+            const group = document.getElementById('visitorInput');
+            group.classList.remove('hidden');
+            document.getElementById('vPhone').setAttribute('required', '');
+        }
+
+        function showAdminInputs() {
+            const group = document.getElementById('adminInput');
+            group.classList.remove('hidden');
+            document.getElementById('adminAccount').setAttribute('required', '');
+        }
     </script>
 </body>
 </html>
