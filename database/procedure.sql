@@ -205,7 +205,8 @@ delimiter ;
 
 # 注册学生用户或者教师用户
 DELIMITER //
-CREATE PROCEDURE register_identity_user(
+drop procedure if exists register_identity_user;
+CREATE PROCEDURE if not exists register_identity_user(
     IN p_name VARCHAR(50),        -- 姓名
     IN p_phone VARCHAR(20),       -- 手机号
     IN p_category TINYINT,        -- 身份类型（1学生 2教师）
@@ -227,7 +228,7 @@ BEGIN
     -- 检查手机号是否重复
     SELECT check_identity_exists_in_borrower(p_name, p_phone)
     INTO v_valid;
-    IF NOT v_valid THEN
+    IF v_valid THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = '用户已被注册';
     END IF;
@@ -245,7 +246,8 @@ DELIMITER ;
 
 # 校外人员注册
 DELIMITER //
-CREATE PROCEDURE register_external_user(
+drop procedure if exists register_external_user;
+CREATE PROCEDURE if not exists register_external_user(
     IN p_name VARCHAR(50),        -- 姓名
     IN p_phone VARCHAR(20),       -- 手机号
     IN p_category TINYINT,         -- 身份类型（3为校外用户）
@@ -256,7 +258,7 @@ BEGIN
     -- 检查手机号是否重复
     SELECT check_identity_exists_in_borrower(p_name, p_phone)
     INTO v_valid;
-    IF NOT v_valid THEN
+    IF v_valid THEN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = '用户已被注册';
     END IF;
@@ -274,7 +276,8 @@ DELIMITER ;
 
 # 两个注册存储过程的集合
 DELIMITER //
-CREATE PROCEDURE register_user(
+drop procedure if exists register_user;
+CREATE PROCEDURE if not exists register_user(
     IN p_name VARCHAR(50),
     IN p_phone VARCHAR(20),
     IN p_category TINYINT,
