@@ -1,5 +1,7 @@
 use bookmanage;
+SET FOREIGN_KEY_CHECKS = 0;
 -- 创建student表（如果不存在）
+DROP TABLE IF EXISTS student;
 CREATE TABLE IF NOT EXISTS student (
     stu_id VARCHAR(13) PRIMARY KEY,
     name VARCHAR(50) NOT NULL
@@ -109,6 +111,7 @@ INSERT INTO student (stu_id, name) VALUES
 ('2025020205005', '齐倩');
 
 -- 创建teacher表（如果不存在）
+DROP TABLE IF EXISTS teacher;
 CREATE TABLE IF NOT EXISTS teacher (
     id VARCHAR(8) PRIMARY KEY,
     name VARCHAR(20) NOT NULL
@@ -171,3 +174,5 @@ INSERT INTO teacher (id, name) VALUES
 ('20250508', '戴磊'),
 ('20250509', '贾雪'),
 ('20250510', '韩鹏');
+
+SET FOREIGN_KEY_CHECKS = 1;
