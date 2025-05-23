@@ -202,7 +202,7 @@ begin
 end //
 delimiter ;
 
-
+# ----------------------注册系统---------------------------
 # 注册学生用户或者教师用户
 DELIMITER //
 drop procedure if exists register_identity_user;
@@ -430,3 +430,19 @@ BEGIN
 
 END //
 DELIMITER ;
+
+
+# 借书系统
+# 获取全部图书的基本信息
+drop procedure if exists get_book_baseinfo;
+delimiter //
+create procedure if not exists get_book_baseinfo()
+begin
+    SELECT
+        b.book_id, b.title, b.remain, GROUP_CONCAT(c.category SEPARATOR ', ') AS categories
+        FROM book b
+        LEFT JOIN bookCategoryRelation r ON b.book_id = r.book_id
+        LEFT JOIN bookCategory c ON r.category_id = c.category_id
+        GROUP BY b.book_id;
+end //
+delimiter ;

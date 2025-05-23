@@ -84,11 +84,11 @@ create table if not exists bookCategory(
 # 图书--图书类表关系表
 drop table if exists bookCategoryRelation;
 create table if not exists bookCategoryRelation(
-                                                   book_id int auto_increment unique comment '图书编号',
-                                                   category_id int not null comment '图书分类号',
-                                                   primary key (book_id, category_id),
-                                                   foreign key (book_id) references book(book_id),
-                                                   foreign key (category_id) references bookcategory(category_id)
+    book_id int comment '图书编号',
+    category_id int not null comment '图书分类号',
+    primary key (book_id, category_id),
+    foreign key (book_id) references book(book_id),
+    foreign key (category_id) references bookcategory(category_id)
 );
 
 # 作者表
@@ -156,7 +156,7 @@ SET FOREIGN_KEY_CHECKS = 1;
 # 登录系统日志表
 drop table if exists login_logging;
 create table if not exists login_logging(
-    id int unique comment '借阅人证件号',
+    id int comment '借阅人证件号',
     name varchar(20) not null comment '借阅人姓名',
     login_time datetime not null comment '登录时间',
     foreign key (id) references borrower(id)
