@@ -175,4 +175,220 @@ INSERT INTO teacher (id, name) VALUES
 ('20250509', '贾雪'),
 ('20250510', '韩鹏');
 
+
+-- ---------------------- 出版社数据 ----------------------
+INSERT INTO publisher (publisher) VALUES
+('人民文学出版社'),
+('清华大学出版社'),
+('机械工业出版社'),
+('电子工业出版社'),
+('商务印书馆'),
+('科学出版社'),
+('中信出版社'),
+('上海译文出版社'),
+('高等教育出版社'),
+('北京大学出版社');
+
+-- ---------------------- 图书分类数据 ----------------------
+INSERT INTO bookCategory (category) VALUES
+('文学'),
+('计算机科学'),
+('物理学'),
+('数学'),
+('历史'),
+('艺术设计'),
+('经济学'),
+('教育学'),
+('医学'),
+('旅游地理');
+
+-- ---------------------- 作者数据 ----------------------
+INSERT INTO author (author) VALUES
+('鲁迅'),
+('莫言'),
+('刘慈欣'),
+('金庸'),
+('余华'),
+('路遥'),
+('斯蒂芬·霍金'),
+('吴军'),
+('钱钟书'),
+('东野圭吾'),
+('J.K.罗琳'),
+('马克·吐温'),
+('村上春树'),
+('三毛'),
+('海明威'),
+('托马斯·科里'),
+('尤瓦尔·赫拉利'),
+('丹·布朗'),
+('乔治·奥威尔'),
+('J.R.R.托尔金');
+
+-- ---------------------- 图书数据(20本) ----------------------
+INSERT INTO book (title, isbn, publisher_id, publication_year, total, remain, location) VALUES
+('三体', '978-7-5364-1234-5', 1, 2008, 10, 8, 'A区3排2列'),
+('平凡的世界', '978-7-5063-5678-9', 5, 1991, 8, 5, 'B区1排7列'),
+('时间简史', '978-7-5432-1122-3', 6, 1992, 5, 3, 'C区5排4列'),
+('Java编程思想', '978-7-121-33456-7', 4, 2019, 15, 12, 'D区2排1列'),
+('围城', '978-7-02-001234-5', 1, 1947, 12, 9, 'A区4排3列'),
+('活着', '978-7-5327-8765-4', 1, 1993, 10, 7, 'B区2排5列'),
+('人类简史', '978-7-5086-7890-1', 7, 2012, 7, 4, 'C区3排6列'),
+('白夜行', '978-7-5442-3456-8', 8, 1999, 9, 6, 'D区1排9列'),
+('算法导论', '978-7-111-56789-0', 3, 2009, 6, 2, 'A区5排1列'),
+('霍乱时期的爱情', '978-7-5327-6543-2', 8, 1985, 5, 3, 'B区3排2列'),
+('百年孤独', '978-7-5327-1234-5', 8, 1967, 8, 5, 'C区2排4列'),
+('Python数据分析', '978-7-115-45678-9', 4, 2020, 10, 8, 'D区4排3列'),
+('小王子', '978-7-5447-1234-5', 9, 1943, 15, 10, 'A区1排6列'),
+('追风筝的人', '978-7-5327-7890-6', 8, 2003, 7, 4, 'B区4排2列'),
+('局外人', '978-7-5447-2345-6', 8, 1942, 6, 3, 'C区6排5列'),
+('经济学原理', '978-7-301-34567-8', 10, 2021, 9, 7, 'D区3排7列'),
+('挪威的森林', '978-7-5327-4567-8', 8, 1987, 8, 6, 'A区2排8列'),
+('设计心理学', '978-7-5086-1234-5', 7, 2015, 5, 2, 'B区5排3列'),
+('明朝那些事儿', '978-7-5063-4321-0', 1, 2006, 12, 9, 'C区1排1列'),
+('哈利波特与魔法石', '978-7-5442-6789-0', 8, 1997, 10, 8, 'D区5排4列');
+
+-- ---------------------- 图书分类关系 ----------------------
+INSERT INTO bookCategoryRelation (book_id, category_id) VALUES
+(1,1),(1,3),   -- 三体(文学/物理)
+(2,1),         -- 平凡的世界
+(3,3),         -- 时间简史
+(4,2),         -- Java编程思想
+(5,1),         -- 围城
+(6,1),         -- 活着
+(7,7),(7,6),   -- 人类简史(经济/历史)
+(8,1),         -- 白夜行
+(9,2),         -- 算法导论
+(10,1),        -- 霍乱时期的爱情
+(11,1),        -- 百年孤独
+(12,2),        -- Python数据分析
+(13,1),        -- 小王子
+(14,1),        -- 追风筝的人
+(15,1),        -- 局外人
+(16,7),        -- 经济学原理
+(17,1),        -- 挪威的森林
+(18,6),        -- 设计心理学
+(19,5),        -- 明朝那些事儿
+(20,1);        -- 哈利波特
+
+-- ---------------------- 图书作者关系 ----------------------
+INSERT INTO bookAuthorRelation (book_id, author_id) VALUES
+(1,3),         -- 三体-刘慈欣
+(2,6),         -- 平凡的世界-路遥
+(3,7),         -- 时间简史-霍金
+(4,8),         -- Java编程思想-Thomas(虚拟作者)
+(5,9),         -- 围城-钱钟书
+(6,5),         -- 活着-余华
+(7,17),        -- 人类简史-赫拉利
+(8,10),        -- 白夜行-东野圭吾
+(9,18),        -- 算法导论-Cormen(虚拟作者)
+(10,19),       -- 霍乱时期的爱情-马尔克斯
+(11,19),       -- 百年孤独-马尔克斯
+(12,8),        -- Python数据分析-虚拟作者
+(13,20),       -- 小王子-圣埃克苏佩里
+(14,11),       -- 追风筝的人-胡赛尼
+(15,15),       -- 局外人-加缪
+(16,16),       -- 经济学原理-曼昆
+(17,13),       -- 挪威的森林-村上春树
+(18,14),       -- 设计心理学-诺曼
+(19,12),       -- 明朝那些事儿-当年明月
+(20,11);       -- 哈利波特-罗琳
+
+-- ---------------------- 借阅人数据(50条) ----------------------
+-- 学生(30人)
+INSERT INTO borrower (name, PhoneNumber, category_id, origin_id, registration_date)
+SELECT s.name,
+       CONCAT('138', FLOOR(RAND()*100000000)),
+       1,
+       s.stu_id,
+       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND()*365) DAY)
+FROM student s LIMIT 30;
+
+-- 教师(15人)
+INSERT INTO borrower (name, PhoneNumber, category_id, origin_id, registration_date)
+SELECT t.name,
+       CONCAT('139', FLOOR(RAND()*100000000)),
+       2,
+       t.id,
+       DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND()*365) DAY)
+FROM teacher t LIMIT 15;
+
+-- 校外人员(5人)
+INSERT INTO borrower (name, PhoneNumber, category_id, registration_date) VALUES
+('王小明', '15012345678', 3, '2023-01-15'),
+('李建国', '15123456789', 3, '2023-03-22'),
+('张丽华', '15234567890', 3, '2023-05-10'),
+('陈志强', '15345678901', 3, '2023-07-08'),
+('刘美丽', '15456789012', 3, '2023-09-19');
+
+-- ---------------------- 用户账号数据 ----------------------
+INSERT INTO user_info (id, password_hash)
+SELECT id, SHA2(CONCAT(PhoneNumber,'lib'), 256)
+FROM borrower;
+select * from borrower;
+-- ---------------------- 借阅记录(100条) ----------------------
+DELIMITER //
+CREATE PROCEDURE GenerateBorrowRecords()
+BEGIN
+  DECLARE i INT DEFAULT 0;
+  WHILE i < 100 DO
+    -- 随机选择借阅人和书籍
+    SET @borrower_id = (SELECT id FROM borrower ORDER BY RAND() LIMIT 1);
+    SET @book_id = (SELECT book_id FROM book WHERE remain > 0 ORDER BY RAND() LIMIT 1);
+    SET @category = (SELECT category FROM borrower b JOIN category c ON b.category_id = c.category_id WHERE b.id = @borrower_id);
+
+    -- 计算借阅期限
+    SET @borrow_period = CASE @category
+        WHEN '学生' THEN 30
+        WHEN '教师' THEN 60
+        WHEN '校外人员' THEN 14
+        ELSE 90 END;
+
+    -- 生成借阅日期(过去一年内随机)
+    SET @borrow_date = DATE_SUB(CURDATE(), INTERVAL FLOOR(RAND()*365) DAY);
+    SET @due_date = DATE_ADD(@borrow_date, INTERVAL @borrow_period DAY);
+
+    -- 随机生成是否归还
+    SET @is_return = IF(RAND() > 0.2, TRUE, FALSE); -- 80%已归还
+    SET @return_date = IF(@is_return, DATE_ADD(@borrow_date, INTERVAL FLOOR(RAND()*@borrow_period*1.5) DAY), NULL);
+    SET @overdue_days = IF(@is_return AND @return_date > @due_date, DATEDIFF(@return_date, @due_date), NULL);
+
+    -- 插入借阅记录
+    INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date, is_return, return_date, overdue_days)
+    VALUES (@borrower_id, @book_id, @borrow_date, @due_date, @is_return, @return_date, @overdue_days);
+
+    -- 更新图书库存
+    UPDATE book SET remain = remain - 1 WHERE book_id = @book_id;
+
+    -- 更新用户借阅数量
+    UPDATE borrower SET borrowed_num = borrowed_num + 1 WHERE id = @borrower_id;
+
+    SET i = i + 1;
+  END WHILE;
+END//
+DELIMITER ;
+
+CALL GenerateBorrowRecords();
+
+-- ---------------------- 罚款记录 ----------------------
+INSERT INTO fine_record (record_id, borrower_id, book_id, borrow_date, due_date, overdue_days, is_return, fine)
+SELECT
+  br.record_id,
+  br.borrower_id,
+  br.book_id,
+  br.borrow_date,
+  br.due_date,
+  br.overdue_days,
+  br.is_return,
+  IFNULL(br.overdue_days * 1, 0) AS fine
+FROM borrow_record br
+WHERE br.overdue_days > 0;
+
+-- 更新部分罚款为已支付
+UPDATE fine_record
+SET is_pay = TRUE
+WHERE FLOOR(RAND()*100) > 50; -- 50%概率已支付
+
+
+
 SET FOREIGN_KEY_CHECKS = 1;
