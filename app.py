@@ -208,7 +208,7 @@ def check_book_availability():
     try:
         data = request.get_json()
         book_id = data['book_id']
-        action = data['action']  # 'borrow'或'add_to_cart'
+        # action = data['action']  # 'borrow'或'add_to_cart'
 
         connection = get_db_connection()
         with connection.cursor() as cursor:
@@ -218,8 +218,8 @@ def check_book_availability():
 
             if result['available']:
                 # 余量充足处理逻辑
-                if action == 'add_to_cart':
-                    return jsonify({'available': True, 'message': '已加入借书车'})
+                # if action == 'add_to_cart':
+                #     return jsonify({'available': True, 'message': '已加入借书车'})
                 return jsonify({'available': True, 'message': '可借阅'})
             else:
                 # 余量不足处理
