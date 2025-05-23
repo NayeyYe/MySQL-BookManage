@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>图书管理系统 - 首页</title>
+    <link rel="stylesheet" href="/static/home.css">
+</head>
+<body>
+    <!-- 顶部导航栏 -->
+    <nav id="mainNav">
+        <ul class="nav-list">
+            <li><a href="home.html">首页</a></li>
+            <li><a href="profile.html">个人中心</a></li>
+            <!-- 管理员专属菜单 -->
+            <li class="admin-only"><a href="admin.html">管理中心</a></li>
+            <li class="logout"><a href="login.html">退出登录</a></li>
+        </ul>
+    </nav>
+
+    <!-- 主要内容区 -->
+    <main class="container">
+        <div class="books-grid">
+            <!-- 示例图书数据 -->
+            <div class="book-card">
+                <h3>MySQL高级程序设计</h3>
+                <div class="book-actions">
+                    <button class="btn add-to-cart">加入借书车</button>
+                    <button class="btn borrow-now">立即借阅</button>
+                </div>
+            </div>
+            <div class="book-card">
+                <h3>Python高级程序设计</h3>
+                <div class="book-actions">
+                    <button class="btn add-to-cart">加入借书车</button>
+                    <button class="btn borrow-now">立即借阅</button>
+                </div>
+            </div>
+            <div class="book-card">
+                <h3>Java高级程序设计</h3>
+                <div class="book-actions">
+                    <button class="btn add-to-cart">加入借书车</button>
+                    <button class="btn borrow-now">立即借阅</button>
+                </div>
+            </div>
+            <div class="book-card">
+                <h3>C++高级程序设计</h3>
+                <div class="book-actions">
+                    <button class="btn add-to-cart">加入借书车</button>
+                    <button class="btn borrow-now">立即借阅</button>
+                </div>
+            </div>
+            <!-- 重复7个示例图书 -->
+            <!-- 此处为节省篇幅，实际需要复制7次 -->
+        </div>
+    </main>
+
+    <!-- 借书车侧边栏 -->
+    <aside id="cartSidebar">
+        <div class="cart-header">
+            <h3>借书车 (0)</h3>
+            <button class="close-cart">&times;</button>
+        </div>
+        <ul class="cart-items"></ul>
+        <button class="btn checkout-btn">立即借阅</button>
+    </aside>
+
+    <!-- 购物车触发按钮 -->
+    <button id="cartToggle" class="cart-toggle">🛒 0</button>
+
+    <script>
+        // 用户角色模拟（正式环境应从后端获取）
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+
+        // 初始化导航栏
+        function initNav() {
+            const adminItems = document.querySelectorAll('.admin-only');
+            adminItems.forEach(item => item.style.display = isAdmin ? 'block' : 'none');
+        }
+
+        // 借书车功能
+        let cartItems = [];
+        const cartToggle = document.getElementById('cartToggle');
+        const cartSidebar = document.getElementById('cartSidebar');
+
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const bookTitle = btn.closest('.book-card').querySelector('h3').textContent;
+                cartItems.push(bookTitle);
+                updateCart();
+            });
+        });
+
+        function updateCart() {
+            cartToggle.textContent = `🛒 ${cartItems.length}`;
+            const cartList = document.querySelector('.cart-items');
+            cartList.innerHTML = cartItems.map(item => `
+                <li>${item} <button class="remove-item">×</button></li>
+            `).join('');
+
+            // 添加删除功能
+            document.querySelectorAll('.remove-item').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const index = [...btn.parentNode.parentNode.children].indexOf(btn.parentNode);
+                    cartItems.splice(index, 1);
+                    updateCart();
+                });
+            });
+        }
+
+        // 侧边栏切换
+        document.getElementById('cartToggle').addEventListener('click', () => {
+            cartSidebar.classList.toggle('active');
+        });
+
+        document.querySelector('.close-cart').addEventListener('click', () => {
+            cartSidebar.classList.remove('active');
+        });
+
+        // 初始化
+        initNav();
+    </script>
+</body>
+</html>
