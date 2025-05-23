@@ -54,6 +54,14 @@ body {
     margin-left: auto;
     margin-right: auto;
 }
+.book-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.9em;
+    color: #718096;
+}
+
 
 .books-grid {
     display: grid;
@@ -193,3 +201,51 @@ body {
 .cart-toggle:hover {
     transform: scale(1.05);
 }
+
+/* 修改书籍网格布局 */
+.books-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 书籍元信息样式 */
+.book-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    font-size: 0.9em;
+    color: #718096;
+}
+
+.stock {
+    color: #48bb78;
+}
+
+.type {
+    background: #f7fafc;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+}
+
+/* 响应式处理 */
+@media (max-width: 768px) {
+    .books-grid {
+        grid-template-columns: 1fr;
+        padding: 0 1rem;
+    }
+}
+
+/* 调整立即借阅按钮 */
+.checkout-btn {
+    padding: 0.5rem 1rem; /* 缩小按钮尺寸 */
+    font-size: 0.9em;
+}
+
+.borrow-now {
+    padding: 0.5rem 0.8rem; /* 缩小书籍卡片按钮 */
+    font-size: 0.9em;
+}
+
