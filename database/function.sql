@@ -63,7 +63,8 @@ DELIMITER ;
 
 #  判断一个人的信息是否存在于学生/教师表中，用于注册系统
 DELIMITER //
-CREATE FUNCTION check_identity_exists_in_origin(
+drop function if exists check_identity_exists_in_origin;
+CREATE FUNCTION if not exists check_identity_exists_in_origin(
     p_id VARCHAR(13),       -- 输入ID（支持13位学生ID或8位教师ID）
     p_name VARCHAR(50),     -- 姓名
     p_identity_id TINYINT   -- 身份标识（1学生 2教师）
@@ -99,9 +100,10 @@ END//
 DELIMITER ;
 
 
-#  判断一个人的信息是否已经存在
+#  判断一个人的信息是否已经存在, 用于注册系统
 DELIMITER //
-CREATE FUNCTION check_identity_exists_in_borrower(
+drop function if exists check_identity_exists_in_borrower;
+CREATE FUNCTION if not exists check_identity_exists_in_borrower(
     p_name VARCHAR(50),
     p_phonenumber varchar(20)
 )
@@ -114,6 +116,58 @@ BEGIN
     select count(*) into v_exists from borrower where PhoneNumber=p_phonenumber and name=p_name;
 
 
+    RETURN v_exists > 0;
+END//
+DELIMITER ;
+
+
+#  判断一个人的信息是否已经存在, 用于登录系统
+DELIMITER //
+drop function if exists check_identity_exists_in_borrower_1;
+CREATE FUNCTION if not exists check_identity_exists_in_borrower_1(
+    p_phonenumber varchar(20)
+)
+    RETURNS BOOLEAN
+    DETERMINISTIC
+    READS SQL DATA
+BEGIN
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+    # 查看表中是否有这个人
+    select count(*) into v_exists from borrower where PhoneNumber=p_phonenumber;
+    RETURN v_exists > 0;
+END//
+DELIMITER ;
+
+#  判断一个人的信息是否已经存在, 用于登录系统
+DELIMITER //
+drop function if exists check_identity_exists_in_borrower_2;
+CREATE FUNCTION if not exists check_identity_exists_in_borrower_2(
+    p_ID varchar(13)
+)
+    RETURNS BOOLEAN
+    DETERMINISTIC
+    READS SQL DATA
+BEGIN
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+    # 查看表中是否有这个人
+    select count(*) into v_exists from borrower where origin_id=p_ID;
+    RETURN v_exists > 0;
+END//
+DELIMITER ;
+
+# 判断管理员信息是否存在, 用于登录系统
+DELIMITER //
+drop function if exists check_identity_exists_in_borrower_3;
+CREATE FUNCTION if not exists check_identity_exists_in_borrower_3(
+    p_name varchar(20)
+)
+    RETURNS BOOLEAN
+    DETERMINISTIC
+    READS SQL DATA
+BEGIN
+    DECLARE v_exists BOOLEAN DEFAULT FALSE;
+    # 查看表中是否有这个人
+    select count(*) into v_exists from borrower where name=p_name and category_id=4;
     RETURN v_exists > 0;
 END//
 DELIMITER ;
