@@ -50,7 +50,7 @@
                 <h3>{{ record.title }}</h3>
                 <div class="meta-info">
                     <span>借出日期：{{ record.borrow_date }}</span>
-                    <span>归还日期：{{ record.return_date or '尚未归还' }}</span>
+                    <span>归还日期：{% if record.is_returned %}{{ record.return_date }}{% else %}尚未归还{% endif %}</span>
                     {% if record.overdue_days is not none and record.overdue_days > 0 %}
                     <span class="overdue">逾期天数：{{ record.overdue_days }}天</span>
                     {% endif %}

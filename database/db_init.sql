@@ -391,4 +391,6 @@ WHERE FLOOR(RAND()*100) > 50; -- 50%概率已支付
 
 select * from borrower;
 select * from borrow_record;
+select *
+from fine_record;
 SET FOREIGN_KEY_CHECKS = 1;

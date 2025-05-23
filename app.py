@@ -222,10 +222,12 @@ def user_info():
             # 获取借阅历史
             cursor.callproc('get_borrow_history', (user_id,))
             borrow_history = [dict(row) for row in cursor.fetchall()]
-
-            # 数据清洗：处理NULL值
+            # 数据清洗
             for record in borrow_history:
                 record['overdue_days'] = record.get('overdue_days', 0)
+                record['return_date'] = record.get('return_date', None)
+                # 添加状态字段用于前端判断
+                record['is_returned'] = bool(record['return_date'])
 
             # 获取罚款记录
             cursor.callproc('get_fine_records', (user_id,))

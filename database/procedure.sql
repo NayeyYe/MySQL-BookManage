@@ -537,11 +537,15 @@ BEGIN
         b.title,
         br.borrow_date,
         br.due_date,
-        COALESCE(br.overdue_days, 0) AS overdue_days
+        br.return_date,
+        COALESCE(br.overdue_days, 0) AS overdue_days,
+        br.is_return
     FROM borrow_record br
     JOIN book b ON br.book_id = b.book_id
     WHERE br.borrower_id = borrower_id
-    ORDER BY br.borrow_date DESC;
+    ORDER BY
+        br.is_return,
+        br.borrow_date DESC;
 END //
 DELIMITER ;
 
