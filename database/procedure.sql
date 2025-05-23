@@ -101,9 +101,6 @@ BEGIN
 
     DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
 
-    -- 开启事务
-    START TRANSACTION;
-
     -- 更新所有记录的逾期天数
     UPDATE fine_record
     SET overdue_days = GREATEST(DATEDIFF(CURDATE(), due_date), 0)
@@ -134,8 +131,6 @@ BEGIN
 
     CLOSE cur_fines;
 
-    -- 提交事务
-    COMMIT;
 END //
 DELIMITER ;
 
@@ -476,7 +471,6 @@ CREATE PROCEDURE borrow_book(
     IN p_book_id INT
 )
 BEGIN
-
     -- 更新图书余量
     UPDATE book SET remain = remain - 1
     WHERE book_id = p_book_id;
@@ -504,7 +498,6 @@ BEGIN
     -- 更新借阅状态
     CALL update_is_can_borrow(p_borrower_id);
 
-    COMMIT;
 END //
 DELIMITER ;
 
@@ -577,14 +570,6 @@ CREATE PROCEDURE return_book(
     IN p_record_id INT
 )
 BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        RESIGNAL;
-    END;
-
-    START TRANSACTION;
-
     -- 更新借阅记录
     UPDATE borrow_record
     SET
@@ -597,8 +582,6 @@ BEGIN
     UPDATE fine_record
     SET is_return = TRUE
     WHERE record_id = p_record_id;
-
-    COMMIT;
 END //
 DELIMITER ;
 
