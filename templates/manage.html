@@ -83,7 +83,6 @@
                     <th>金额</th>
                     <th>产生时间</th>
                     <th>状态</th>
-                    <th>操作</th>
                 </tr>
             </thead>
             <tbody>
@@ -93,7 +92,6 @@
                     <td>¥20.00</td>
                     <td>2024-03-15</td>
                     <td><span class="status unpaid">未支付</span></td>
-                    <td><button class="resolve-btn">标记处理</button></td>
                 </tr>
                 <!-- 更多罚款数据 -->
             </tbody>
@@ -144,7 +142,6 @@
                                 <td><span class="status ${
                                     item.status === '未支付' ? 'unpaid' : 'paid'
                                 }">${item.status}</span></td>
-                                <td><button class="resolve-btn">标记处理</button></td>
                             `;
                         }
                         tbody.appendChild(row);
@@ -180,12 +177,19 @@
 
         // 冻结/解冻操作
         document.addEventListener('click', e => {
-            if(e.target.classList.contains('delete-btn')) {
+            // 修改判断条件为包含action-btn类
+            if(e.target.classList.contains('action-btn')) {
                 const userId = e.target.closest('tr').querySelector('td:first-child').textContent;
                 fetch(`/api/user/${userId}/toggle-status`, { method: 'POST' })
-                    .then(() => loadData('users'));
+                    .then(() => {
+                        // 强制重新加载当前表格
+                        const activeTable = document.querySelector('.data-table.active').id;
+                        loadData(activeTable);
+                    })
+                    .catch(error => console.error('操作失败:', error));
             }
         });
+
     </script>
 
 

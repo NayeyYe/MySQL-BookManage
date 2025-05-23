@@ -205,3 +205,18 @@ body {
 .unfreeze-btn:hover {
     background-color: #45a049;
 }
+
+/* 增加样式优先级 */
+button.action-btn.freeze-btn {
+    background-color: #ff4444 !important;
+}
+
+button.action-btn.unfreeze-btn {
+    background-color: #4CAF50 !important;
+}
+
+/* 添加点击反馈 */
+button.action-btn:active {
+    transform: scale(0.95);
+    transition: transform 0.1s;
+}
