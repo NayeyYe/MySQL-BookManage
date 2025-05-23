@@ -1,0 +1,163 @@
+/* 基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+    background: #f8f9fa;
+}
+
+/* 顶部导航 */
+.admin-nav {
+    background: #2c3e50;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-list {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.nav-list a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s;
+}
+
+.nav-list a:hover {
+    opacity: 0.8;
+}
+
+.logout {
+    margin-left: auto;
+}
+
+/* 管理标签 */
+.management-tabs {
+    max-width: 1400px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+    display: flex;
+    gap: 1rem;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    color: #4a5568;
+    font-weight: 500;
+    transition: all 0.3s;
+    border-radius: 6px;
+}
+
+.tab-btn.active {
+    background: #4299e1;
+    color: white;
+}
+
+/* 数据表格容器 */
+.data-container {
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    display: none;
+}
+
+.data-table.active {
+    display: table;
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.data-table th {
+    background: #f7fafc;
+    color: #4a5568;
+    font-weight: 600;
+}
+
+.data-table tbody tr:hover {
+    background: #f8fafc;
+}
+
+/* 状态标签 */
+.status {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+}
+
+.borrowing {
+    background: #bee3f8;
+    color: #2b6cb0;
+}
+
+.unpaid {
+    background: #fed7d7;
+    color: #c53030;
+}
+
+/* 操作按钮 */
+.edit-btn, .delete-btn, .resolve-btn {
+    padding: 0.4rem 0.8rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin: 0 2px;
+}
+
+.edit-btn {
+    background: #4299e1;
+    color: white;
+}
+
+.delete-btn {
+    background: #fc8181;
+    color: white;
+}
+
+.resolve-btn {
+    background: #48bb78;
+    color: white;
+}
+
+.edit-btn:hover,
+.delete-btn:hover,
+.resolve-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* 响应式处理 */
+@media (max-width: 768px) {
+    .data-container {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        min-width: 800px;
+    }
+}
