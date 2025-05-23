@@ -1,5 +1,4 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-from cryptography.fernet import Fernet
 import pymysql
 from config import dbconfig
 
@@ -7,7 +6,6 @@ from config import dbconfig
 app = Flask(__name__)
 
 app.secret_key = 'your_secret_key_here'  # 设置Flask会话密钥
-fernet = Fernet(dbconfig.AES_KEY)
 
 def get_db_connection():
     return pymysql.connect(
@@ -23,9 +21,66 @@ def get_db_connection():
 def index():
     return render_template('index.html')
 
-@app.route('/login.html')
+# 在app.py中添加登录路由处理
+@app.route('/login.html', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            user_type = data['userType']
+            password = data['password']
+
+            connection = get_db_connection()
+            try:
+                with connection.cursor() as cursor:
+                    # 根据不同登录方式调用存储过程
+                    if user_type == 'teacher':
+                        if data.get('loginMethod') == 'staffId':
+                            staff_id = data['staffId']
+                            cursor.callproc('login_by_origin_id',
+                                          (staff_id, password))
+                        else:
+                            phone = data['tPhone']
+                            cursor.callproc('login_by_phone',
+                                          (phone, password))
+                    elif user_type == 'student':
+                        if data.get('loginMethod') == 'studentId':
+                            student_id = data['sId']
+                            cursor.callproc('login_by_origin_id',
+                                          (student_id, password))
+                        else:
+                            phone = data['sPhone']
+                            cursor.callproc('login_by_phone',
+                                          (phone, password))
+                    elif user_type == 'visitor':
+                        phone = data['vPhone']
+                        cursor.callproc('login_by_phone',
+                                      (phone, password))
+                    elif user_type == 'admin':
+                        admin_name = data['adminAccount']
+                        cursor.callproc('login_admin',
+                                      (admin_name, password))
+                    else:
+                        return jsonify({'success': False, 'message': '无效的用户类型'}), 400
+
+                    # 获取存储过程执行结果
+                    result = cursor.fetchone()
+                    if result and result.get('success'):
+                        return jsonify({'success': True, 'message': '登录成功'})
+                    else:
+                        return jsonify({'success': False, 'message': '登录失败'}), 401
+
+            except pymysql.MySQLError as e:
+                error_msg = str(e.args[1]) if e.args else "数据库错误"
+                return jsonify({'success': False, 'message': error_msg}), 500
+            finally:
+                connection.close()
+
+        except Exception as e:
+            return jsonify({'success': False, 'message': str(e)}), 500
+
     return render_template('login.html')
+
 
 
 @app.route('/register.html', methods=['GET', 'POST'])
@@ -66,8 +121,6 @@ def register():
             # 手机号验证
             if not phone.startswith('1') or len(phone) != 11:
                 return jsonify({'success': False, 'message': '手机号格式错误'}), 400
-            # 加密密码
-            encrypted_pwd = fernet.encrypt(password.encode()).decode()
             # 数据库操作
             connection = get_db_connection()
             try:
@@ -75,10 +128,10 @@ def register():
                     # 调用存储过程
                     if user_type == 'visitor':
                         cursor.callproc('register_external_user',
-                                        (name, phone, category_id, encrypted_pwd))
+                                        (name, phone, category_id, password))
                     else:
                         cursor.callproc('register_identity_user',
-                                        (name, phone, category_id, origin_id, encrypted_pwd))
+                                        (name, phone, category_id, origin_id, password))
 
                     connection.commit()
                     return jsonify({'success': True, 'message': '注册成功'})

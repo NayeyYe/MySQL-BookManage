@@ -41,8 +41,8 @@
                             <div id="teacherStaffId" class="form-group">
                                 <label for="staffId">职工ID</label>
                                 <input type="text" id="staffId" class="form-control"
-                                       pattern="\d{8,10}"
-                                       placeholder="8-10位职工ID">
+                                       pattern="\d{8}"
+                                       placeholder="8位职工ID">
                             </div>
                             <div id="teacherPhone" class="form-group hidden">
                                 <label for="tPhone">手机号</label>
@@ -69,8 +69,8 @@
                             <div id="studentIdInput" class="form-group">
                                 <label for="sId">学号</label>
                                 <input type="text" id="sId" class="form-control"
-                                       pattern="\d{10,12}"
-                                       placeholder="10-12位学号">
+                                       pattern="\d{13}"
+                                       placeholder="13位学号">
                             </div>
                             <div id="studentPhone" class="form-group hidden">
                                 <label for="sPhone">手机号</label>
@@ -105,7 +105,7 @@
                         <label for="password">密码</label>
                         <input type="password" id="password" class="form-control"
                                required minlength="6"
-                               placeholder="至少6位密码">
+                               placeholder="密码">
                     </div>
                 </div>
 
@@ -195,6 +195,62 @@
             group.classList.remove('hidden');
             document.getElementById('adminAccount').setAttribute('required', '');
         }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = {
+                userType: document.getElementById('userType').value,
+                password: document.getElementById('password').value
+            };
+
+            // 收集不同登录方式的字段
+            switch(formData.userType) {
+                case 'teacher':
+                    formData.loginMethod = document.querySelector('[name="teacherMethod"]:checked').value;
+                    if(formData.loginMethod === 'staffId') {
+                        formData.staffId = document.getElementById('staffId').value;
+                    } else {
+                        formData.tPhone = document.getElementById('tPhone').value;
+                    }
+                    break;
+                case 'student':
+                    formData.loginMethod = document.querySelector('[name="studentMethod"]:checked').value;
+                    if(formData.loginMethod === 'studentId') {
+                        formData.sId = document.getElementById('sId').value;
+                    } else {
+                        formData.sPhone = document.getElementById('sPhone').value;
+                    }
+                    break;
+                case 'visitor':
+                    formData.vPhone = document.getElementById('vPhone').value;
+                    break;
+                case 'admin':
+                    formData.adminAccount = document.getElementById('adminAccount').value;
+                    break;
+            }
+
+            try {
+                const response = await fetch('/login.html', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('登录成功！');
+                    window.location.href = "{{ url_for('helloworld') }}";
+                } else {
+                    alert(`登录失败：${result.message}`);
+                }
+            } catch (error) {
+                alert('网络错误，请稍后重试');
+            }
+        });
+
     </script>
 </body>
 </html>
