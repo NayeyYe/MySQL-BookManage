@@ -1,7 +1,6 @@
 # ---------------------- 创建数据库 ----------------------
 drop database if exists BookManage;
-create database if not exists bookmanage
-    default character set utf8;
+create database if not exists bookmanage;
 use BookManage;
 show tables ;
 # ---------------------- 创建数据表 ----------------------
@@ -47,6 +46,8 @@ create table if not exists user_info(
     password_hash VARCHAR(255) NOT NULL COMMENT 'SHA2密码哈希',
     foreign key (id) references borrower(id)
 );
+
+insert into user_info(id, password_hash) VALUES (1, sha2('13Password,', 256));
 
 # 出版社表
 drop table if exists publisher;
@@ -157,6 +158,9 @@ drop table if exists login_logging;
 create table if not exists login_logging(
     id int unique comment '借阅人证件号',
     name varchar(20) not null comment '借阅人姓名',
-    login_time date not null comment '登录时间',
+    login_time datetime not null comment '登录时间',
     foreign key (id) references borrower(id)
 );
+
+
+select * from borrower;

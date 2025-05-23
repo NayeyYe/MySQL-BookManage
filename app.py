@@ -27,61 +27,61 @@ def login():
     if request.method == 'POST':
         try:
             data = request.get_json()
+            required_fields = {
+                'teacher': ['loginMethod', 'staffId' if data.get('loginMethod') == 'staffId' else 'tPhone', 'password'],
+                'student': ['loginMethod', 'sId' if data.get('loginMethod') == 'studentId' else 'sPhone', 'password'],
+                'visitor': ['vPhone', 'password'],
+                'admin': ['adminAccount', 'password']
+            }
+
             user_type = data['userType']
-            password = data['password']
+            if not all(field in data for field in required_fields[user_type]):
+                return jsonify({'success': False, 'message': '缺少必要字段'}), 400
 
             connection = get_db_connection()
             try:
                 with connection.cursor() as cursor:
-                    # 根据不同登录方式调用存储过程
+                    params = []
                     if user_type == 'teacher':
-                        if data.get('loginMethod') == 'staffId':
-                            staff_id = data['staffId']
-                            cursor.callproc('login_by_origin_id',
-                                          (staff_id, password))
+                        if data['loginMethod'] == 'staffId':
+                            cursor.callproc('login_by_origin_id', (data['staffId'], data['password']))
                         else:
-                            phone = data['tPhone']
-                            cursor.callproc('login_by_phone',
-                                          (phone, password))
+                            cursor.callproc('login_by_phone', (data['tPhone'], data['password']))
                     elif user_type == 'student':
-                        if data.get('loginMethod') == 'studentId':
-                            student_id = data['sId']
-                            cursor.callproc('login_by_origin_id',
-                                          (student_id, password))
+                        if data['loginMethod'] == 'studentId':
+                            cursor.callproc('login_by_origin_id', (data['sId'], data['password']))
                         else:
-                            phone = data['sPhone']
-                            cursor.callproc('login_by_phone',
-                                          (phone, password))
+                            cursor.callproc('login_by_phone', (data['sPhone'], data['password']))
                     elif user_type == 'visitor':
-                        phone = data['vPhone']
-                        cursor.callproc('login_by_phone',
-                                      (phone, password))
+                        cursor.callproc('login_by_phone', (data['vPhone'], data['password']))
                     elif user_type == 'admin':
-                        admin_name = data['adminAccount']
-                        cursor.callproc('login_admin',
-                                      (admin_name, password))
-                    else:
-                        return jsonify({'success': False, 'message': '无效的用户类型'}), 400
+                        cursor.callproc('login_admin', (data['adminAccount'], data['password']))
 
-                    # 获取存储过程执行结果
-                    result = cursor.fetchone()
-                    if result and result.get('success'):
-                        return jsonify({'success': True, 'message': '登录成功'})
-                    else:
-                        return jsonify({'success': False, 'message': '登录失败'}), 401
+                    # 显式消费所有结果集
+                    while cursor.nextset():
+                        pass
+
+                    connection.commit()
+                    return jsonify({'success': True, 'message': '登录成功'})
 
             except pymysql.MySQLError as e:
-                error_msg = str(e.args[1]) if e.args else "数据库错误"
+                connection.rollback()
+                error_code = e.args[0] if e.args else 500
+                error_msg = e.args[1] if len(e.args) > 1 else "数据库操作失败"
+
+                # 处理特定错误代码
+                if error_code == 1644:
+                    return jsonify({'success': False, 'message': error_msg}), 401
                 return jsonify({'success': False, 'message': error_msg}), 500
+
             finally:
                 connection.close()
 
+        except KeyError as e:
+            return jsonify({'success': False, 'message': f'缺少必要字段: {e}'}), 400
         except Exception as e:
             return jsonify({'success': False, 'message': str(e)}), 500
-
     return render_template('login.html')
-
-
 
 @app.route('/register.html', methods=['GET', 'POST'])
 def register():

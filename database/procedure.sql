@@ -338,7 +338,6 @@ BEGIN
     -- 记录成功日志
     INSERT INTO login_logging(id, name, login_time)
     VALUES (v_user_id, v_name, NOW());
-
 END //
 DELIMITER ;
 
