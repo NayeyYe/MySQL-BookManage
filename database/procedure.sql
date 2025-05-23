@@ -211,7 +211,7 @@ CREATE PROCEDURE if not exists register_identity_user(
     IN p_phone VARCHAR(20),       -- 手机号
     IN p_category TINYINT,        -- 身份类型（1学生 2教师）
     IN p_origin_id VARCHAR(20),    -- 原始ID（学号/工号）
-    IN p_pwd_hash varchar(255)
+    IN p_plain_password varchar(255)
 )
 BEGIN
     DECLARE v_valid BOOLEAN;
@@ -239,7 +239,7 @@ BEGIN
     VALUES
     (p_name, p_phone, p_category, p_origin_id, current_date);
 
-    insert into user_info(id, password_hash) values (LAST_INSERT_ID(), p_pwd_hash);
+    insert into user_info(id, password_hash) values (LAST_INSERT_ID(), sha2(p_plain_password, 256));
 END//
 DELIMITER ;
 
@@ -251,7 +251,7 @@ CREATE PROCEDURE if not exists register_external_user(
     IN p_name VARCHAR(50),        -- 姓名
     IN p_phone VARCHAR(20),       -- 手机号
     IN p_category TINYINT,         -- 身份类型（3为校外用户）
-    IN p_pwd_hash varchar(255)
+    IN p_plain_password varchar(255)
 )
 BEGIN
     declare v_valid boolean;
@@ -269,7 +269,7 @@ BEGIN
     VALUES
     (p_name, p_phone, p_category, NULL, current_date);
 
-    insert into user_info(id, password_hash) values (LAST_INSERT_ID(), p_pwd_hash);
+    insert into user_info(id, password_hash) values (LAST_INSERT_ID(), sha2(p_plain_password, 256));
 END//
 DELIMITER ;
 
@@ -282,7 +282,7 @@ CREATE PROCEDURE if not exists register_user(
     IN p_phone VARCHAR(20),
     IN p_category TINYINT,
     IN p_origin_id VARCHAR(20), -- 可为NULL
-    IN p_pwd_hash varchar(255)
+    IN p_plain_password varchar(255)
 )
 BEGIN
     -- 参数有效性检查
@@ -290,13 +290,144 @@ BEGIN
         SIGNAL SQLSTATE '45000'
         SET MESSAGE_TEXT = '学生/教师必须提供原始ID';
     END IF;
-
     -- 路由到对应注册逻辑
     CASE
         WHEN p_category IN (1,2) THEN
-            CALL register_identity_user(p_name, p_phone, p_category, p_origin_id, p_pwd_hash);
+            CALL register_identity_user(p_name, p_phone, p_category, p_origin_id, p_plain_password);
         ELSE
-            CALL register_external_user(p_name, p_phone, p_category, p_pwd_hash);
+            CALL register_external_user(p_name, p_phone, p_category, p_plain_password);
     END CASE;
 END//
+DELIMITER ;
+
+
+# 手机号密码登录
+DELIMITER //
+drop procedure if exists login_by_phone;
+CREATE PROCEDURE if not exists login_by_phone(
+    IN p_phone VARCHAR(20),
+    IN p_plain_password VARCHAR(255))
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE v_stored_hash VARCHAR(255);
+
+    DECLARE v_name VARCHAR(20);
+
+    -- 验证手机号存在性
+    IF NOT check_identity_exists_in_borrower_1(p_phone) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '用户不存在';
+    END IF;
+
+    -- 获取用户凭证
+    SELECT b.id, ui.password_hash, b.name
+    INTO v_user_id, v_stored_hash, v_name
+    FROM borrower b
+    JOIN user_info ui ON b.id = ui.id
+    WHERE b.PhoneNumber = p_phone;
+
+    -- 密码验证
+    IF v_stored_hash != sha2(p_plain_password, 256) THEN
+        INSERT INTO login_logging(id, name, login_time)
+        VALUES (v_user_id, v_name, NOW());
+
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '密码错误';
+    END IF;
+
+    -- 记录成功日志
+    INSERT INTO login_logging(id, name, login_time)
+    VALUES (v_user_id, v_name, NOW());
+
+END //
+DELIMITER ;
+
+
+# 教职工ID, 学号, 密码登录
+DELIMITER //
+drop procedure if exists login_by_origin_id;
+CREATE PROCEDURE if not exists login_by_origin_id(
+    IN p_origin_id VARCHAR(13),
+    IN p_plain_password VARCHAR(255)
+)
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE v_stored_hash VARCHAR(255);
+    DECLARE v_name VARCHAR(20);
+    DECLARE v_category TINYINT;
+
+    -- 验证原始ID存在性
+    IF NOT check_identity_exists_in_borrower_2(p_origin_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '用户不存在';
+    END IF;
+
+    -- 获取用户凭证和身份
+    SELECT b.id, ui.password_hash, b.name, b.category_id
+    INTO v_user_id, v_stored_hash, v_name, v_category
+    FROM borrower b
+    JOIN user_info ui ON b.id = ui.id
+    WHERE b.origin_id = p_origin_id;
+
+    -- 身份验证（仅允许学生/教师）
+    IF v_category NOT IN (1,2) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '非法登录方式';
+    END IF;
+
+
+    -- 密码验证
+    IF v_stored_hash != sha2(p_plain_password, 256) THEN
+        INSERT INTO login_logging(id, name, login_time)
+        VALUES (v_user_id, v_name, NOW());
+
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '密码错误';
+    END IF;
+
+    -- 记录日志
+    INSERT INTO login_logging(id, name, login_time)
+    VALUES (v_user_id, v_name, NOW());
+END//
+DELIMITER ;
+
+
+# 管理员密码登录
+DELIMITER //
+drop procedure if exists login_admin;
+CREATE PROCEDURE if not exists login_admin(
+    IN p_name VARCHAR(20),
+    IN p_plain_password VARCHAR(255))
+BEGIN
+    DECLARE v_user_id INT;
+    DECLARE v_stored_hash VARCHAR(255);
+    DECLARE v_name VARCHAR(20);
+
+    -- 验证手机号存在性
+    IF NOT check_identity_exists_in_borrower_3(p_name) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '用户不存在';
+    END IF;
+
+    -- 获取用户凭证
+    SELECT b.id, ui.password_hash, b.name
+    INTO v_user_id, v_stored_hash, v_name
+    FROM borrower b
+    JOIN user_info ui ON b.id = ui.id
+    WHERE b.name = p_name;
+
+    -- 密码验证
+    IF v_stored_hash != sha2(p_plain_password, 256) THEN
+        INSERT INTO login_logging(id, name, login_time)
+        VALUES (v_user_id, v_name, NOW());
+
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '密码错误';
+    END IF;
+
+    -- 记录成功日志
+    INSERT INTO login_logging(id, name, login_time)
+    VALUES (v_user_id, v_name, NOW());
+
+END //
 DELIMITER ;
