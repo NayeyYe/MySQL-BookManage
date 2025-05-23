@@ -10,9 +10,9 @@
     <nav id="mainNav">
         <ul class="nav-list">
             <li><a href="home.html">首页</a></li>
-            <li><a href="profile.html">个人中心</a></li>
+            <li><a href="info.html">个人中心</a></li>
             <!-- 管理员专属菜单 -->
-            <li class="admin-only"><a href="admin.html">管理中心</a></li>
+            <li class="admin-only"><a href="manage.html">管理中心</a></li>
             <li class="logout"><a href="login.html">退出登录</a></li>
         </ul>
     </nav>
@@ -20,141 +20,19 @@
     <!-- 主要内容区 -->
     <main class="container">
         <div class="books-grid">
-            <!-- 示例图书数据 -->
+            {% for book in books %}
             <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
+                <h3>{{ book.title }}</h3>
                 <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
+                    <span class="stock">剩余：{{ book.remain }}本</span>
+                    <span class="type">类型：{{ book.categories }}</span>
                 </div>
                 <div class="book-actions">
                     <button class="btn add-to-cart">加入借书车</button>
                     <button class="btn borrow-now">立即借阅</button>
                 </div>
             </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <div class="book-card">
-                <h3>MySQL高级程序设计</h3>
-                <div class="book-meta">
-                    <span class="stock">剩余：5本</span>
-                    <span class="type">类型：数据库</span>
-                </div>
-                <div class="book-actions">
-                    <button class="btn add-to-cart">加入借书车</button>
-                    <button class="btn borrow-now">立即借阅</button>
-                </div>
-            </div>
-            <!-- 重复7个示例图书 -->
-            <!-- 此处为节省篇幅，实际需要复制7次 -->
+            {% endfor %}
         </div>
     </main>
 
