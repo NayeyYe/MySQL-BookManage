@@ -1,4 +1,4 @@
-use BookManage;
+use bookmanage;
 # ------------------创建触发器---------------------
 # 借书之前, 借阅人借书的数量要+1, 总图书中的图书剩余量要-1
 DROP TRIGGER IF EXISTS before_borrow_insert;

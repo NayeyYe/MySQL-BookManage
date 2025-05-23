@@ -1,7 +1,7 @@
 # ---------------------- 创建数据库 ----------------------
-drop database if exists BookManage;
+drop database if exists bookmanage;
 create database if not exists bookmanage;
-use BookManage;
+use bookmanage;
 show tables ;
 # ---------------------- 创建数据表 ----------------------
 SET FOREIGN_KEY_CHECKS = 0;
@@ -88,7 +88,7 @@ create table if not exists bookCategoryRelation(
     category_id int not null comment '图书分类号',
     primary key (book_id, category_id),
     foreign key (book_id) references book(book_id),
-    foreign key (category_id) references bookcategory(category_id)
+    foreign key (category_id) references bookCategory(category_id)
 );
 
 # 作者表

@@ -1,4 +1,4 @@
-use BookManage;
+use bookmanage;
 # ------------------创建存储过程---------------------
 # 更新借阅人能不能借阅
 drop procedure if exists update_is_can_borrow;

@@ -1,4 +1,4 @@
-use BookManage;
+use bookmanage;
 show tables ;
 set global log_bin_trust_function_creators =TRUE;
 # ------------------ 创建储存函数 ---------------------
