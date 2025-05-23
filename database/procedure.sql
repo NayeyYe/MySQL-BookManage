@@ -320,7 +320,7 @@ BEGIN
     END IF;
 
     -- 获取用户凭证
-    SELECT b.id, ui.password_hash, b.name
+    SELECT b.id as id , ui.password_hash, b.name as name
     INTO v_user_id, v_stored_hash, v_name
     FROM borrower b
     JOIN user_info ui ON b.id = ui.id
@@ -362,7 +362,7 @@ BEGIN
     END IF;
 
     -- 获取用户凭证和身份
-    SELECT b.id, ui.password_hash, b.name, b.category_id
+    SELECT b.id as id , ui.password_hash, b.name as name , b.category_id
     INTO v_user_id, v_stored_hash, v_name, v_category
     FROM borrower b
     JOIN user_info ui ON b.id = ui.id
@@ -409,7 +409,7 @@ BEGIN
     END IF;
 
     -- 获取用户凭证
-    SELECT b.id, ui.password_hash, b.name
+    SELECT b.id as id, ui.password_hash, b.name as name
     INTO v_user_id, v_stored_hash, v_name
     FROM borrower b
     JOIN user_info ui ON b.id = ui.id
