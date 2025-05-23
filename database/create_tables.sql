@@ -1,6 +1,7 @@
 # ---------------------- 创建数据库 ----------------------
 drop database if exists BookManage;
-create database if not exists bookmanage;
+create database if not exists bookmanage
+    default character set utf8;
 use BookManage;
 show tables ;
 # ---------------------- 创建数据表 ----------------------
@@ -37,16 +38,15 @@ create table if not exists borrower(
     primary key (id),
     foreign key (category_id) references category(category_id)
 );
-
+INSERT INTO borrower(name, PhoneNumber, category_id, registration_date) values ('root', '13597646338', 4, current_date);
 
 # 账号密码表
 drop table if exists user_info;
 create table if not exists user_info(
     id int comment '账号',
-    password_hash VARCHAR(255) NOT NULL COMMENT 'bcrypt密码哈希',
+    password_hash VARCHAR(255) NOT NULL COMMENT 'SHA2密码哈希',
     foreign key (id) references borrower(id)
 );
-
 
 # 出版社表
 drop table if exists publisher;
@@ -127,6 +127,7 @@ create table if not exists borrow_record(
     foreign key (book_id) references book(book_id)
 );
 
+# 罚款记录表
 drop table if exists fine_record;
 create table if not exists fine_record(
     fine_id int not null unique auto_increment comment '罚款记录编号',
@@ -150,3 +151,12 @@ create table if not exists fine_record(
 
 SET FOREIGN_KEY_CHECKS = 1;
 
+
+# 登录系统日志表
+drop table if exists login_logging;
+create table if not exists login_logging(
+    id int unique comment '借阅人证件号',
+    name varchar(20) not null comment '借阅人姓名',
+    login_time date not null comment '登录时间',
+    foreign key (id) references borrower(id)
+);
