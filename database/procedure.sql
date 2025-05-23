@@ -475,28 +475,17 @@ CREATE PROCEDURE borrow_book(
     IN p_borrower_id INT,
     IN p_book_id INT
 )
-proc_label:BEGIN
-    DECLARE EXIT HANDLER FOR SQLEXCEPTION
-    BEGIN
-        ROLLBACK;
-        RESIGNAL;
-    END;
+BEGIN
 
-    START TRANSACTION;
+    -- 更新图书余量
+    UPDATE book SET remain = remain - 1
+    WHERE book_id = p_book_id;
 
-    -- 检查借阅人是否存在
-    IF NOT EXISTS (SELECT 1 FROM borrower WHERE id = p_borrower_id) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = '用户不存在';
-    END IF;
+    -- 更新借阅数量
+    UPDATE borrower SET borrowed_num = borrowed_num + 1
+    WHERE id = p_borrower_id;
 
-    -- 检查图书是否存在
-    IF NOT EXISTS (SELECT 1 FROM book WHERE book_id = p_book_id) THEN
-        SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = '图书不存在';
-    END IF;
-
-    -- 插入借阅记录（触发器会自动处理库存和状态更新）
+    -- 插入借阅记录（触发器的校验仍然生效）
     INSERT INTO borrow_record (
         borrower_id,
         book_id,
@@ -511,6 +500,9 @@ proc_label:BEGIN
              FROM category
              WHERE category_id = (SELECT category_id FROM borrower WHERE id = p_borrower_id)) DAY)
     );
+
+    -- 更新借阅状态
+    CALL update_is_can_borrow(p_borrower_id);
 
     COMMIT;
 END //

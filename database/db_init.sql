@@ -390,5 +390,5 @@ SET is_pay = TRUE
 WHERE FLOOR(RAND()*100) > 50; -- 50%概率已支付
 
 select * from borrower;
-
+select * from borrow_record;
 SET FOREIGN_KEY_CHECKS = 1;
