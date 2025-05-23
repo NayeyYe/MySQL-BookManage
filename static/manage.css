@@ -161,3 +161,47 @@ body {
         min-width: 800px;
     }
 }
+
+.data-table {
+    display: none;
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.data-table.active {
+    display: table;
+}
+
+.tab-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+
+/* 按钮基础样式 */
+.action-btn {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+    color: white;
+}
+
+/* 冻结按钮样式 */
+.freeze-btn {
+    background-color: #ff4444; /* 红色 */
+}
+
+.freeze-btn:hover {
+    background-color: #cc0000;
+}
+
+/* 解冻按钮样式 */
+.unfreeze-btn {
+    background-color: #4CAF50; /* 绿色 */
+}
+
+.unfreeze-btn:hover {
+    background-color: #45a049;
+}

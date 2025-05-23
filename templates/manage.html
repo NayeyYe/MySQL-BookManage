@@ -42,8 +42,7 @@
                     <td>zhangsan@example.com</td>
                     <td>2024-01-15</td>
                     <td>
-                        <button class="edit-btn">编辑</button>
-                        <button class="delete-btn">冻结</button>
+                        <button class="delete-btn">${item.is_can_borrow ? '冻结' : '解冻'}</button>
                     </td>
                 </tr>
                 <!-- 更多用户数据 -->
@@ -102,14 +101,7 @@
     </main>
 
     <script>
-        // 权限验证
-        const isAdmin = localStorage.getItem('user_type') === '4';
-        if (!isAdmin) {
-            alert('请使用管理员账号登录');
-            window.location.href = 'login.html';
-        }
-
-        // 动态加载数据
+    // 动态加载数据
         function loadData(tableType) {
             fetch(`/api/manage/${tableType}`)
                 .then(response => response.json())
@@ -127,8 +119,9 @@
                                 <td>${item.PhoneNumber}</td>
                                 <td>${item.registration_date}</td>
                                 <td>
-                                    <button class="edit-btn">编辑</button>
-                                    <button class="delete-btn">${item.is_can_borrow ? '冻结' : '解冻'}</button>
+                                    <button class="action-btn ${item.is_can_borrow ? 'freeze-btn' : 'unfreeze-btn'}">
+                                        ${item.is_can_borrow ? '冻结' : '解冻'}
+                                    </button>
                                 </td>
                             `;
                         } else if(tableType === 'borrows') {
@@ -138,7 +131,9 @@
                                 <td>${item.borrower_name}</td>
                                 <td>${item.borrow_date}</td>
                                 <td>${item.due_date}</td>
-                                <td><span class="status ${item.status === '借阅中' ? 'borrowing' : 'returned'}">${item.status}</span></td>
+                                <td><span class="status ${
+                                    item.status === '借阅中' ? 'borrowing' : 'returned'
+                                }">${item.status}</span></td>
                             `;
                         } else if(tableType === 'fines') {
                             row.innerHTML = `
@@ -146,7 +141,9 @@
                                 <td>${item.borrower_name}</td>
                                 <td>¥${item.fine.toFixed(2)}</td>
                                 <td>${item.borrow_date}</td>
-                                <td><span class="status ${item.status === '未支付' ? 'unpaid' : 'paid'}">${item.status}</span></td>
+                                <td><span class="status ${
+                                    item.status === '未支付' ? 'unpaid' : 'paid'
+                                }">${item.status}</span></td>
                                 <td><button class="resolve-btn">标记处理</button></td>
                             `;
                         }
@@ -155,14 +152,29 @@
                 });
         }
 
+        // 表格切换功能
+        function switchTable(tableType) {
+            // 移除所有表格和按钮的激活状态
+            document.querySelectorAll('.data-table, .tab-btn').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // 激活当前表格和按钮
+            document.getElementById(tableType).classList.add('active');
+            document.querySelector(`[data-table="${tableType}"]`).classList.add('active');
+
+            // 加载数据
+            loadData(tableType);
+        }
+
         // 初始化加载用户数据
-        loadData('users');
+        switchTable('users');
 
         // 表格切换事件
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const tableType = btn.dataset.table;
-                loadData(tableType);
+                switchTable(tableType);
             });
         });
 
@@ -175,6 +187,7 @@
             }
         });
     </script>
+
 
 </body>
 </html>

@@ -639,7 +639,7 @@ BEGIN
     FROM borrow_record br
     JOIN borrower b ON br.borrower_id = b.id
     JOIN book bk ON br.book_id = bk.book_id
-    ORDER BY br.borrow_date DESC;
+    ORDER BY br.is_return, br.borrow_date DESC;
 END //
 DELIMITER ;
 
@@ -660,7 +660,7 @@ BEGIN
     FROM fine_record fr
     JOIN borrower b ON fr.borrower_id = b.id
     JOIN book bk ON fr.book_id = bk.book_id
-    ORDER BY fr.due_date DESC;
+    ORDER BY fr.is_pay, fr.due_date DESC;
 END //
 DELIMITER ;
 
