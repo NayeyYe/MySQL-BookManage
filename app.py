@@ -41,7 +41,6 @@ def login():
             connection = get_db_connection()
             try:
                 with connection.cursor() as cursor:
-                    params = []
                     if user_type == 'teacher':
                         if data['loginMethod'] == 'staffId':
                             cursor.callproc('login_by_origin_id', (data['staffId'], data['password']))
@@ -58,10 +57,21 @@ def login():
                         cursor.callproc('login_admin', (data['adminAccount'], data['password']))
 
                     result = cursor.fetchone()
+                    app.logger.debug(f"登录查询结果: {result}")  # 添加日志
+                    if not result:
+                        app.logger.error("用户凭证验证失败")
+                        raise ValueError('用户信息获取失败')
 
                     # 显式消费所有结果集
-                    while cursor.nextset():
-                        pass
+                    try:
+                        while cursor.nextset():
+                            app.logger.debug("清理残留结果集")
+                    except pymysql.err.InterfaceError:
+                        pass  # 忽略已关闭游标的错误
+
+                    # 重置游标状态
+                    if cursor.rownumber != 0:
+                        cursor.scroll(0, mode='absolute')
 
                     if not result:
                         raise ValueError('用户信息获取失败')
