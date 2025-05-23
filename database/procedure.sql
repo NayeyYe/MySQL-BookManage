@@ -468,7 +468,7 @@ end //
 delimiter ;
 
 
--- file: procedure.sql (新增借书存储过程)
+# 借书
 DELIMITER //
 DROP PROCEDURE IF EXISTS borrow_book;
 CREATE PROCEDURE borrow_book(
