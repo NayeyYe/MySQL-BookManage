@@ -1,0 +1,150 @@
+/* 基础样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+}
+
+body {
+    background: #f8f9fa;
+}
+
+/* 顶部导航 */
+.main-nav {
+    background: #2c3e50;
+    padding: 1rem 2rem;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.nav-list {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.nav-list a {
+    color: white;
+    text-decoration: none;
+    font-weight: 500;
+    transition: opacity 0.3s;
+}
+
+.nav-list a:hover {
+    opacity: 0.8;
+}
+
+.nav-list .active a {
+    color: #48bb78;
+}
+
+.logout {
+    margin-left: auto;
+}
+
+/* 标签切换 */
+.tab-container {
+    max-width: 1200px;
+    margin: 2rem auto 0;
+    padding: 0 2rem;
+    display: flex;
+    gap: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
+    padding: 1rem 2rem;
+    cursor: pointer;
+    color: #4a5568;
+    font-weight: 500;
+    transition: all 0.3s;
+    position: relative;
+}
+
+.tab-btn.active {
+    color: #2c3e50;
+    font-weight: 600;
+}
+
+.tab-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: #4299e1;
+}
+
+/* 内容区域 */
+.content-wrapper {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 2rem;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+}
+
+/* 记录卡片 */
+.record-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    position: relative;
+}
+
+.record-card h3 {
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.meta-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    color: #718096;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+/* 按钮样式 */
+.renew-btn, .pay-btn {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.renew-btn {
+    background: #4299e1;
+    color: white;
+}
+
+.pay-btn {
+    background: #48bb78;
+    color: white;
+}
+
+.renew-btn:hover, .pay-btn:hover {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+/* 警告状态 */
+.record-card.warning {
+    border-left: 4px solid #fc8181;
+}

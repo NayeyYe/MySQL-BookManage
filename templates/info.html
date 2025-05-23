@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>个人中心 - 图书管理系统</title>
+    <link rel="stylesheet" href="../static/info.css">
+</head>
+<body>
+    <!-- 顶部导航 -->
+    <nav class="main-nav">
+        <ul class="nav-list">
+            <li><a href="home.html">首页</a></li>
+            <li class="active"><a href="info.html">个人中心</a></li>
+            <li class="logout"><a href="login.html">退出登录</a></li>
+        </ul>
+    </nav>
+
+    <!-- 内容切换标签 -->
+    <div class="tab-container">
+        <button class="tab-btn active" data-tab="borrowed">已借书籍(2)</button>
+        <button class="tab-btn" data-tab="history">借阅记录</button>
+        <button class="tab-btn" data-tab="fines">罚款记录</button>
+    </div>
+
+    <!-- 内容区域 -->
+    <main class="content-wrapper">
+        <!-- 当前借阅 -->
+        <section id="borrowed" class="tab-content active">
+            <div class="record-card">
+                <h3>JavaScript高级程序设计</h3>
+                <div class="meta-info">
+                    <span>借出日期：2024-03-01</span>
+                    <span>应还日期：2024-04-01</span>
+                </div>
+                <button class="renew-btn">还书</button>
+            </div>
+            <!-- 更多借阅记录... -->
+        </section>
+
+        <!-- 借阅历史 -->
+        <section id="history" class="tab-content">
+            <div class="record-card">
+                <h3>Python编程从入门到实践</h3>
+                <div class="meta-info">
+                    <span>借出日期：2024-02-15</span>
+                    <span>归还日期：2024-03-10</span>
+                </div>
+            </div>
+            <!-- 更多历史记录... -->
+        </section>
+
+        <!-- 罚款记录 -->
+        <section id="fines" class="tab-content">
+            <div class="record-card warning">
+                <h3>超期归还罚款</h3>
+                <div class="meta-info">
+                    <span>金额：¥20.00</span>
+                    <span>状态：未缴纳</span>
+                    <span>截止日期：2024-04-10</span>
+                </div>
+                <button class="pay-btn">立即支付</button>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 标签切换功能
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // 移除所有激活状态
+                document.querySelectorAll('.tab-btn, .tab-content').forEach(el => {
+                    el.classList.remove('active');
+                });
+
+                // 设置当前激活状态
+                btn.classList.add('active');
+                document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+    </script>
+</body>
+</html>
