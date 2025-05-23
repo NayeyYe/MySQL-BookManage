@@ -422,7 +422,12 @@ BEGIN
     INTO v_user_id, v_stored_hash, v_name
     FROM borrower b
     JOIN user_info ui ON b.id = ui.id
-    WHERE b.name = p_name;
+    WHERE b.name = p_name and b.category_id=4 limit 1;
+
+    IF v_user_id IS NULL THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '管理员不存在';
+    END IF;
 
     -- 密码验证
     IF v_stored_hash != sha2(p_plain_password, 256) THEN
@@ -442,7 +447,7 @@ BEGIN
         b.name AS name,
         b.category_id AS category
     FROM borrower b
-    WHERE b.name = p_name;
+    WHERE b.name = p_name and b.category_id = 4 limit 1;
 END //
 DELIMITER ;
 
@@ -595,5 +600,77 @@ BEGIN
     UPDATE fine_record
     SET is_pay = TRUE
     WHERE fine_id = p_fine_id;
+END //
+DELIMITER ;
+
+
+-- 获取所有用户
+DELIMITER //
+drop procedure if exists get_all_users;
+CREATE PROCEDURE get_all_users()
+BEGIN
+    SELECT
+        b.id,
+        b.name,
+        b.PhoneNumber,
+        c.category,
+        b.registration_date,
+        b.borrowed_num,
+        b.is_can_borrow
+    FROM borrower b
+    JOIN category c ON b.category_id = c.category_id
+    ORDER BY b.registration_date DESC;
+END //
+DELIMITER ;
+
+-- 获取所有借阅记录
+DELIMITER //
+drop procedure if exists get_all_borrows;
+CREATE PROCEDURE get_all_borrows()
+BEGIN
+    SELECT
+        br.record_id,
+        b.name AS borrower_name,
+        bk.title,
+        br.borrow_date,
+        br.due_date,
+        IF(br.is_return, '已归还', '借阅中') AS status,
+        br.overdue_days
+    FROM borrow_record br
+    JOIN borrower b ON br.borrower_id = b.id
+    JOIN book bk ON br.book_id = bk.book_id
+    ORDER BY br.borrow_date DESC;
+END //
+DELIMITER ;
+
+-- 获取所有罚款记录
+DELIMITER //
+drop procedure if exists get_all_fines;
+CREATE PROCEDURE get_all_fines()
+BEGIN
+    SELECT
+        fr.fine_id,
+        b.name AS borrower_name,
+        bk.title,
+        fr.borrow_date,
+        fr.due_date,
+        fr.overdue_days,
+        fr.fine,
+        IF(fr.is_pay, '已支付', '未支付') AS status
+    FROM fine_record fr
+    JOIN borrower b ON fr.borrower_id = b.id
+    JOIN book bk ON fr.book_id = bk.book_id
+    ORDER BY fr.due_date DESC;
+END //
+DELIMITER ;
+
+
+DELIMITER //
+drop procedure if exists toggle_user_status;
+CREATE PROCEDURE toggle_user_status(IN user_id INT)
+BEGIN
+    UPDATE borrower
+    SET is_can_borrow = NOT is_can_borrow
+    WHERE id = user_id;
 END //
 DELIMITER ;

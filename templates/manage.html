@@ -103,19 +103,78 @@
 
     <script>
         // 权限验证
-        // const isAdmin = localStorage.getItem('isAdmin') === 'true';
-        // if (!isAdmin) window.location.href = 'home.html';
+        const isAdmin = localStorage.getItem('user_type') === '4';
+        if (!isAdmin) {
+            alert('请使用管理员账号登录');
+            window.location.href = 'login.html';
+        }
 
-        // 表格切换功能
+        // 动态加载数据
+        function loadData(tableType) {
+            fetch(`/api/manage/${tableType}`)
+                .then(response => response.json())
+                .then(data => {
+                    const table = document.getElementById(tableType);
+                    const tbody = table.querySelector('tbody');
+                    tbody.innerHTML = '';
+
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        if(tableType === 'users') {
+                            row.innerHTML = `
+                                <td>${item.id}</td>
+                                <td>${item.name}</td>
+                                <td>${item.PhoneNumber}</td>
+                                <td>${item.registration_date}</td>
+                                <td>
+                                    <button class="edit-btn">编辑</button>
+                                    <button class="delete-btn">${item.is_can_borrow ? '冻结' : '解冻'}</button>
+                                </td>
+                            `;
+                        } else if(tableType === 'borrows') {
+                            row.innerHTML = `
+                                <td>${item.record_id}</td>
+                                <td>${item.title}</td>
+                                <td>${item.borrower_name}</td>
+                                <td>${item.borrow_date}</td>
+                                <td>${item.due_date}</td>
+                                <td><span class="status ${item.status === '借阅中' ? 'borrowing' : 'returned'}">${item.status}</span></td>
+                            `;
+                        } else if(tableType === 'fines') {
+                            row.innerHTML = `
+                                <td>${item.fine_id}</td>
+                                <td>${item.borrower_name}</td>
+                                <td>¥${item.fine.toFixed(2)}</td>
+                                <td>${item.borrow_date}</td>
+                                <td><span class="status ${item.status === '未支付' ? 'unpaid' : 'paid'}">${item.status}</span></td>
+                                <td><button class="resolve-btn">标记处理</button></td>
+                            `;
+                        }
+                        tbody.appendChild(row);
+                    });
+                });
+        }
+
+        // 初始化加载用户数据
+        loadData('users');
+
+        // 表格切换事件
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn, .data-table').forEach(el => {
-                    el.classList.remove('active');
-                });
-                btn.classList.add('active');
-                document.getElementById(btn.dataset.table).classList.add('active');
+                const tableType = btn.dataset.table;
+                loadData(tableType);
             });
         });
+
+        // 冻结/解冻操作
+        document.addEventListener('click', e => {
+            if(e.target.classList.contains('delete-btn')) {
+                const userId = e.target.closest('tr').querySelector('td:first-child').textContent;
+                fetch(`/api/user/${userId}/toggle-status`, { method: 'POST' })
+                    .then(() => loadData('users'));
+            }
+        });
     </script>
+
 </body>
 </html>

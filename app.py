@@ -1,3 +1,5 @@
+from decimal import Decimal
+
 from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 import pymysql
 from config import dbconfig
@@ -200,7 +202,11 @@ def home():
             # 处理多结果集
             while cursor.nextset():
                 pass
-        return render_template('home.html', books=books, username=username)
+        # 新增用户类型传递
+        return render_template('home.html',
+                               books=books,
+                               username=session.get('username', '用户'),
+                               user_type=session.get('user_type', 0))  # 0为默认非管理员
     except pymysql.MySQLError as e:
         app.logger.error(f"数据库错误: {str(e)}")
         return render_template('error.html', message='数据库查询失败'), 500
@@ -312,6 +318,65 @@ def handle_pay_fine(fine_id):
         if 'connection' in locals():
             connection.close()
 
+
+# 管理员路由
+@app.route('/manage.html')
+def manage():
+    if 'user_type' not in session or session['user_type'] != 4:  # 4是管理员类型
+        return redirect(url_for('login'))
+    return render_template('manage.html', username=session.get('username', '管理员'))
+
+
+# 管理员数据接口
+@app.route('/api/manage/<data_type>')
+def manage_data(data_type):
+    if 'user_type' not in session or session['user_type'] != 4:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            if data_type == 'users':
+                cursor.callproc('get_all_users')
+                data = cursor.fetchall()
+            elif data_type == 'borrows':
+                cursor.callproc('get_all_borrows')
+                data = cursor.fetchall()
+            elif data_type == 'fines':
+                cursor.callproc('get_all_fines')
+                data = cursor.fetchall()
+            else:
+                return jsonify({'error': 'Invalid data type'}), 400
+
+            # 处理Decimal类型
+            for item in data:
+                for key in item:
+                    if isinstance(item[key], Decimal):
+                        item[key] = float(item[key])
+            return jsonify(data)
+    except pymysql.MySQLError as e:
+        app.logger.error(f"数据库错误: {str(e)}")
+        return jsonify({'error': 'Database error'}), 500
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
+
+@app.route('/api/user/<int:user_id>/toggle-status', methods=['POST'])
+def toggle_user_status(user_id):
+    if 'user_type' not in session or session['user_type'] != 4:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            cursor.callproc('toggle_user_status', (user_id,))
+            connection.commit()
+            return jsonify({'success': True})
+    except pymysql.MySQLError as e:
+        return jsonify({'error': str(e)}), 500
+    finally:
+        connection.close()
 
 
 # app.py 添加借阅校验路由

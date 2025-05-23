@@ -12,6 +12,9 @@
             <li class="welcome-msg">{{ username }}</li>
             <li><a href="home.html">首页</a></li>
             <li><a href="{{ url_for('user_info') }}">个人中心</a></li>
+            {% if user_type == 4 %}
+            <li><a href="manage.html" class="admin-link">🏛️ 管理中心</a></li>
+            {% endif %}
             <!-- 管理员专属菜单 -->
             <li class="admin-only"><a href="manage.html">管理中心</a></li>
             <li class="logout"><a href="login.html">退出登录</a></li>
@@ -52,7 +55,7 @@
 
     <script>
         // 用户角色模拟（正式环境应从后端获取）
-        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        // const isAdmin = localStorage.getItem('isAdmin') === 'true';
 
         // 初始化导航栏
         function initNav() {
