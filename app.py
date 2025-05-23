@@ -158,6 +158,34 @@ def helloworld():
 def index_redirect():
     return redirect(url_for('index'))
 
+# app.py 修改（优化首页路由）
+@app.route('/home.html')
+def home():
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            # 调用存储过程
+            cursor.callproc('get_book_baseinfo')
+            # 获取结果集
+            books = cursor.fetchall()
+            # 处理分类字段格式
+            for book in books:
+                book['categories'] = book['categories'] or '未分类'
+            # 处理多结果集
+            while cursor.nextset():
+                pass
+        return render_template('home.html', books=books)
+    except pymysql.MySQLError as e:
+        app.logger.error(f"数据库错误: {str(e)}")
+        return render_template('error.html', message='数据库查询失败'), 500
+    except Exception as e:
+        app.logger.error(f"系统错误: {str(e)}")
+        return render_template('error.html', message='系统错误'), 500
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
+
 # 处理未实现页面
 @app.route('/<page>')
 def catch_all(page):
