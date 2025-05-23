@@ -338,6 +338,13 @@ BEGIN
     -- 记录成功日志
     INSERT INTO login_logging(id, name, login_time)
     VALUES (v_user_id, v_name, NOW());
+
+    SELECT
+        b.id AS id,
+        b.name AS name,
+        b.category_id AS category
+    FROM borrower b
+    WHERE b.PhoneNumber = p_phone;
 END //
 DELIMITER ;
 
@@ -387,6 +394,13 @@ BEGIN
     -- 记录日志
     INSERT INTO login_logging(id, name, login_time)
     VALUES (v_user_id, v_name, NOW());
+
+    SELECT
+        b.id AS id,
+        b.name AS name,
+        b.category_id AS category
+    FROM borrower b
+    WHERE b.origin_id = p_origin_id;
 END//
 DELIMITER ;
 
@@ -428,6 +442,12 @@ BEGIN
     INSERT INTO login_logging(id, name, login_time)
     VALUES (v_user_id, v_name, NOW());
 
+    SELECT
+        b.id AS id,
+        b.name AS name,
+        b.category_id AS category
+    FROM borrower b
+    WHERE b.name = p_name;
 END //
 DELIMITER ;
 
@@ -446,3 +466,52 @@ begin
         GROUP BY b.book_id;
 end //
 delimiter ;
+
+
+-- file: procedure.sql (新增借书存储过程)
+DELIMITER //
+DROP PROCEDURE IF EXISTS borrow_book;
+CREATE PROCEDURE borrow_book(
+    IN p_borrower_id INT,
+    IN p_book_id INT
+)
+proc_label:BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    -- 检查借阅人是否存在
+    IF NOT EXISTS (SELECT 1 FROM borrower WHERE id = p_borrower_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '用户不存在';
+    END IF;
+
+    -- 检查图书是否存在
+    IF NOT EXISTS (SELECT 1 FROM book WHERE book_id = p_book_id) THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = '图书不存在';
+    END IF;
+
+    -- 插入借阅记录（触发器会自动处理库存和状态更新）
+    INSERT INTO borrow_record (
+        borrower_id,
+        book_id,
+        borrow_date,
+        due_date
+    ) VALUES (
+        p_borrower_id,
+        p_book_id,
+        CURDATE(),
+        DATE_ADD(CURDATE(), INTERVAL
+            (SELECT borrow_period
+             FROM category
+             WHERE category_id = (SELECT category_id FROM borrower WHERE id = p_borrower_id)) DAY)
+    );
+
+    COMMIT;
+END //
+DELIMITER ;

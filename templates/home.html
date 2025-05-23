@@ -9,6 +9,7 @@
     <!-- 顶部导航栏 -->
     <nav id="mainNav">
         <ul class="nav-list">
+            <li class="welcome-msg">👤 {{ username }}</li>
             <li><a href="home.html">首页</a></li>
             <li><a href="info.html">个人中心</a></li>
             <!-- 管理员专属菜单 -->
@@ -168,6 +169,50 @@
                 showAlert('借阅申请已提交', 'success');
             });
         });
+        // 修改立即借阅按钮事件处理
+        document.querySelectorAll('.borrow-now').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const bookCard = btn.closest('.book-card');
+                const bookId = bookCard.dataset.bookId;
+
+                try {
+                    // 第一步：检查余量
+                    const checkResponse = await fetch('/check_book', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({
+                            book_id: bookId,
+                            action: 'borrow'
+                        })
+                    });
+
+                    if (!checkResponse.ok) {
+                        const error = await checkResponse.json();
+                        throw new Error(error.message);
+                    }
+
+                    // 第二步：执行借阅
+                    const borrowResponse = await fetch('/borrow', {
+                        method: 'POST',
+                        headers: {'Content-Type': 'application/json'},
+                        body: JSON.stringify({ book_id: bookId })
+                    });
+
+                    const result = await borrowResponse.json();
+
+                    if (result.success) {
+                        showAlert('✅ 借阅成功，3秒后刷新页面', 'success');
+                        setTimeout(() => location.reload(), 3000);
+                    } else {
+                        showAlert(`❌ 借阅失败：${result.message}`, 'error');
+                    }
+
+                } catch (error) {
+                    showAlert(`❌ 操作失败：${error.message}`, 'error');
+                }
+            });
+        });
+
     </script>
 
 </body>

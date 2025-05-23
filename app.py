@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 import pymysql
 from config import dbconfig
 
@@ -57,12 +57,24 @@ def login():
                     elif user_type == 'admin':
                         cursor.callproc('login_admin', (data['adminAccount'], data['password']))
 
+                    result = cursor.fetchone()
+
                     # 显式消费所有结果集
                     while cursor.nextset():
                         pass
 
+                    if not result:
+                        raise ValueError('用户信息获取失败')
                     connection.commit()
-                    return jsonify({'success': True, 'message': '登录成功'})
+                    session['user_id'] = result['id']
+                    session['username'] = result['name']
+                    session['user_type'] = result['category']
+                    return jsonify({
+                        'success': True,
+                        'message': '登录成功',
+                        'redirect': url_for('home')  # 添加跳转路径
+                    })
+
 
             except pymysql.MySQLError as e:
                 connection.rollback()
@@ -161,6 +173,10 @@ def index_redirect():
 # app.py 修改（优化首页路由）
 @app.route('/home.html')
 def home():
+    if 'user_id' not in session:  # 添加登录校验
+        return redirect(url_for('login'))
+
+    username = session.get('username', '用户')
     try:
         connection = get_db_connection()
         with connection.cursor() as cursor:
@@ -174,7 +190,7 @@ def home():
             # 处理多结果集
             while cursor.nextset():
                 pass
-        return render_template('home.html', books=books)
+        return render_template('home.html', books=books, username=username)
     except pymysql.MySQLError as e:
         app.logger.error(f"数据库错误: {str(e)}")
         return render_template('error.html', message='数据库查询失败'), 500
@@ -222,6 +238,35 @@ def check_book_availability():
     finally:
         if 'connection' in locals():
             connection.close()
+
+
+@app.route('/borrow', methods=['POST'])
+def borrow_book():
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    data = request.get_json()
+    book_id = data.get('book_id')
+
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            # 调用借书存储过程
+            cursor.callproc('borrow_book',
+                            (session['user_id'], book_id))
+            connection.commit()
+            return jsonify({'success': True, 'message': '借阅成功'})
+
+    except pymysql.MySQLError as e:
+        error_code = e.args[0]
+        error_msg = e.args[1] if len(e.args) > 1 else "数据库错误"
+        # 处理特定错误码
+        if error_code == 1644:
+            return jsonify({'success': False, 'message': error_msg}), 400
+        return jsonify({'success': False, 'message': error_msg}), 500
+
+    finally:
+        connection.close()
 
 
 # 处理未实现页面

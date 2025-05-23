@@ -281,3 +281,11 @@ body {
 }
 
 
+/* 添加欢迎信息样式 */
+.welcome-msg {
+    color: #2c3e50;
+    font-weight: bold;
+    margin-right: 2rem;
+}
+
+
