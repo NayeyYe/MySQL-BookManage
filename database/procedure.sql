@@ -507,3 +507,106 @@ BEGIN
     COMMIT;
 END //
 DELIMITER ;
+
+
+-- 获取当前借阅
+DELIMITER //
+drop procedure if exists get_current_borrows;
+CREATE PROCEDURE get_current_borrows(IN borrower_id INT)
+BEGIN
+    SELECT
+        br.record_id,
+        b.title,
+        br.borrow_date,
+        br.due_date,
+        COALESCE(br.overdue_days, 0) AS overdue_days
+    FROM borrow_record br
+    JOIN book b ON br.book_id = b.book_id
+    WHERE br.borrower_id = borrower_id
+    AND br.is_return = FALSE;
+END //
+DELIMITER ;
+
+-- 获取借阅历史
+DELIMITER //
+drop procedure if exists get_borrow_history;
+CREATE PROCEDURE get_borrow_history(IN borrower_id INT)
+BEGIN
+    SELECT
+        br.record_id,
+        b.title,
+        br.borrow_date,
+        br.due_date,
+        COALESCE(br.overdue_days, 0) AS overdue_days
+    FROM borrow_record br
+    JOIN book b ON br.book_id = b.book_id
+    WHERE br.borrower_id = borrower_id
+    ORDER BY br.borrow_date DESC;
+END //
+DELIMITER ;
+
+-- 获取罚款记录
+DELIMITER //
+drop procedure if exists get_fine_records;
+CREATE PROCEDURE get_fine_records(IN borrower_id INT)
+BEGIN
+    SELECT
+        fr.fine_id,
+        b.title,
+        fr.borrow_date,
+        fr.due_date,
+        fr.overdue_days,
+        fr.fine,
+        fr.is_pay
+    FROM fine_record fr
+    JOIN book b ON fr.book_id = b.book_id
+    WHERE fr.borrower_id = borrower_id
+    ORDER BY fr.due_date DESC;
+END //
+DELIMITER ;
+
+
+-- 还书存储过程
+DELIMITER //
+drop procedure if exists return_book;
+CREATE PROCEDURE return_book(
+    IN p_record_id INT
+)
+BEGIN
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        RESIGNAL;
+    END;
+
+    START TRANSACTION;
+
+    -- 更新借阅记录
+    UPDATE borrow_record
+    SET
+        is_return = TRUE,
+        return_date = CURDATE(),
+        overdue_days = GREATEST(DATEDIFF(CURDATE(), due_date), 0)
+    WHERE record_id = p_record_id;
+
+    -- 更新关联的罚款记录
+    UPDATE fine_record
+    SET is_return = TRUE
+    WHERE record_id = p_record_id;
+
+    COMMIT;
+END //
+DELIMITER ;
+
+-- 支付罚款存储过程
+DELIMITER //
+drop procedure if exists pay_fine;
+CREATE PROCEDURE pay_fine(
+    IN p_fine_id INT
+)
+BEGIN
+    UPDATE fine_record
+    SET is_pay = TRUE
+    WHERE fine_id = p_fine_id;
+END //
+DELIMITER ;

@@ -148,3 +148,91 @@ body {
 .record-card.warning {
     border-left: 4px solid #fc8181;
 }
+
+/* 基础样式 */
+.main-nav {
+    background: #2c3e50;
+    padding: 1rem;
+}
+
+.nav-list {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    color: white;
+}
+
+.tab-container {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #ddd;
+}
+
+.tab-btn {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    background: #f0f0f0;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+.tab-btn.active {
+    background: #3498db;
+    color: white;
+}
+
+/* 记录卡片 */
+.record-card {
+    background: white;
+    padding: 1.5rem;
+    margin: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.record-card h3 {
+    margin: 0 0 1rem 0;
+    color: #2c3e50;
+}
+
+.meta-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    color: #666;
+}
+
+.overdue {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+/* 操作按钮 */
+.renew-btn, .pay-btn {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.renew-btn {
+    background: #27ae60;
+    color: white;
+}
+
+.pay-btn {
+    background: #e67e22;
+    color: white;
+}
+
+.warning {
+    border-left: 4px solid #e74c3c;
+}
+
+.empty-tip {
+    padding: 2rem;
+    text-align: center;
+    color: #666;
+}

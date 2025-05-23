@@ -17,7 +17,7 @@
 
     <!-- 内容切换标签 -->
     <div class="tab-container">
-        <button class="tab-btn active" data-tab="borrowed">已借书籍(2)</button>
+        <button class="tab-btn active" data-tab="borrowed">已借书籍({{ current_borrows|length }})</button>
         <button class="tab-btn" data-tab="history">借阅记录</button>
         <button class="tab-btn" data-tab="fines">罚款记录</button>
     </div>
@@ -26,40 +26,58 @@
     <main class="content-wrapper">
         <!-- 当前借阅 -->
         <section id="borrowed" class="tab-content active">
+            {% for record in current_borrows %}
             <div class="record-card">
-                <h3>JavaScript高级程序设计</h3>
+                <h3>{{ record.title }}</h3>
                 <div class="meta-info">
-                    <span>借出日期：2024-03-01</span>
-                    <span>应还日期：2024-04-01</span>
+                    <span>借出日期：{{ record.borrow_date }}</span>
+                    <span>应还日期：{{ record.due_date }}</span>
+                    {% if record.overdue_days is not none and record.overdue_days > 0 %}
+                    <span class="overdue">逾期天数：{{ record.overdue_days }}天</span>
+                    {% endif %}
                 </div>
-                <button class="renew-btn">还书</button>
+                <button class="renew-btn" data-record-id="{{ record.record_id }}">还书</button>
             </div>
-            <!-- 更多借阅记录... -->
+            {% else %}
+            <div class="empty-tip">暂无未归还书籍</div>
+            {% endfor %}
         </section>
 
         <!-- 借阅历史 -->
         <section id="history" class="tab-content">
+            {% for record in borrow_history %}
             <div class="record-card">
-                <h3>Python编程从入门到实践</h3>
+                <h3>{{ record.title }}</h3>
                 <div class="meta-info">
-                    <span>借出日期：2024-02-15</span>
-                    <span>归还日期：2024-03-10</span>
+                    <span>借出日期：{{ record.borrow_date }}</span>
+                    <span>归还日期：{{ record.return_date or '尚未归还' }}</span>
+                    {% if record.overdue_days is not none and record.overdue_days > 0 %}
+                    <span class="overdue">逾期天数：{{ record.overdue_days }}天</span>
+                    {% endif %}
                 </div>
             </div>
-            <!-- 更多历史记录... -->
+            {% else %}
+            <div class="empty-tip">暂无借阅记录</div>
+            {% endfor %}
         </section>
 
         <!-- 罚款记录 -->
         <section id="fines" class="tab-content">
-            <div class="record-card warning">
-                <h3>超期归还罚款</h3>
+            {% for fine in fines %}
+            <div class="record-card {% if not fine.is_pay %}warning{% endif %}">
+                <h3>{{ fine.title }}</h3>
                 <div class="meta-info">
-                    <span>金额：¥20.00</span>
-                    <span>状态：未缴纳</span>
-                    <span>截止日期：2024-04-10</span>
+                    <span>金额：¥{{ fine.fine }}</span>
+                    <span>状态：{{ '已支付' if fine.is_pay else '未支付' }}</span>
+                    <span>截止日期：{{ fine.due_date }}</span>
                 </div>
-                <button class="pay-btn">立即支付</button>
+                {% if not fine.is_pay %}
+                <button class="pay-btn" data-fine-id="{{ fine.fine_id }}">立即支付</button>
+                {% endif %}
             </div>
+            {% else %}
+            <div class="empty-tip">暂无罚款记录</div>
+            {% endfor %}
         </section>
     </main>
 
@@ -67,14 +85,55 @@
         // 标签切换功能
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
-                // 移除所有激活状态
                 document.querySelectorAll('.tab-btn, .tab-content').forEach(el => {
                     el.classList.remove('active');
                 });
-
-                // 设置当前激活状态
                 btn.classList.add('active');
                 document.getElementById(btn.dataset.tab).classList.add('active');
+            });
+        });
+
+        // 还书功能
+        document.querySelectorAll('.renew-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const recordId = btn.dataset.recordId;
+                try {
+                    const response = await fetch(`/return_book/${recordId}`, {
+                        method: 'POST'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('还书成功');
+                        location.reload();
+                    } else {
+                        alert(`还书失败：${result.message}`);
+                    }
+                } catch (error) {
+                    alert('网络错误，请稍后重试');
+                }
+            });
+        });
+
+        // 支付罚款
+        document.querySelectorAll('.pay-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const fineId = btn.dataset.fineId;
+                try {
+                    const response = await fetch(`/pay_fine/${fineId}`, {
+                        method: 'POST'
+                    });
+
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('支付成功');
+                        location.reload();
+                    } else {
+                        alert(`支付失败：${result.message}`);
+                    }
+                } catch (error) {
+                    alert('网络错误，请稍后重试');
+                }
             });
         });
     </script>

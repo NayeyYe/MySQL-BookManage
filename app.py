@@ -202,6 +202,106 @@ def home():
             connection.close()
 
 
+@app.route('/info.html')
+def user_info():
+    if 'user_id' not in session:
+        return redirect(url_for('login'))
+
+    user_id = session['user_id']
+    connection = get_db_connection()
+
+    try:
+        with connection.cursor() as cursor:
+            # 获取当前借阅
+            cursor.callproc('get_current_borrows', (user_id,))
+            current_borrows = [dict(row) for row in cursor.fetchall()]
+
+            # 数据清洗：处理NULL值
+            for record in current_borrows:
+                record['overdue_days'] = record.get('overdue_days', 0)
+            # 获取借阅历史
+            cursor.callproc('get_borrow_history', (user_id,))
+            borrow_history = [dict(row) for row in cursor.fetchall()]
+
+            # 数据清洗：处理NULL值
+            for record in borrow_history:
+                record['overdue_days'] = record.get('overdue_days', 0)
+
+            # 获取罚款记录
+            cursor.callproc('get_fine_records', (user_id,))
+            fines = cursor.fetchall()
+
+            # 处理多结果集
+            while cursor.nextset():
+                pass
+
+        return render_template('info.html',
+                               current_borrows=current_borrows,
+                               borrow_history=borrow_history,
+                               fines=fines,
+                               username=session.get('username', '用户'))
+
+    except pymysql.MySQLError as e:
+        app.logger.error(f"数据库错误: {str(e)}")
+        return render_template('error.html', message='数据库查询失败'), 500
+    finally:
+        connection.close()
+
+
+# 还书操作
+@app.route('/return_book/<int:record_id>', methods=['POST'])
+def handle_return_book(record_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            # 调用存储过程
+            cursor.callproc('return_book', (record_id,))
+            connection.commit()
+            return jsonify({'success': True, 'message': '还书成功'})
+
+    except pymysql.MySQLError as e:
+        error_code = e.args[0]
+        error_msg = e.args[1] if len(e.args) > 1 else "数据库操作失败"
+        return jsonify({
+            'success': False,
+            'message': f'操作失败（错误代码：{error_code}）: {error_msg}'
+        }), 500
+
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
+# 支付罚款
+@app.route('/pay_fine/<int:fine_id>', methods=['POST'])
+def handle_pay_fine(fine_id):
+    if 'user_id' not in session:
+        return jsonify({'success': False, 'message': '请先登录'}), 401
+
+    try:
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            # 调用存储过程
+            cursor.callproc('pay_fine', (fine_id,))
+            connection.commit()
+            return jsonify({'success': True, 'message': '支付成功'})
+
+    except pymysql.MySQLError as e:
+        error_code = e.args[0]
+        error_msg = e.args[1] if len(e.args) > 1 else "数据库操作失败"
+        return jsonify({
+            'success': False,
+            'message': f'支付失败（错误代码：{error_code}）: {error_msg}'
+        }), 500
+
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
+
+
 # app.py 添加借阅校验路由
 @app.route('/check_book', methods=['POST'])
 def check_book_availability():
