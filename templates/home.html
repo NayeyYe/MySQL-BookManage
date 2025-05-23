@@ -21,7 +21,7 @@
     <main class="container">
         <div class="books-grid">
             {% for book in books %}
-            <div class="book-card">
+            <div class="book-card" data-book-id="{{ book.book_id }}">
                 <h3>{{ book.title }}</h3>
                 <div class="book-meta">
                     <span class="stock">剩余：{{ book.remain }}本</span>
@@ -64,14 +64,6 @@
         const cartToggle = document.getElementById('cartToggle');
         const cartSidebar = document.getElementById('cartSidebar');
 
-        document.querySelectorAll('.add-to-cart').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const bookTitle = btn.closest('.book-card').querySelector('h3').textContent;
-                cartItems.push(bookTitle);
-                updateCart();
-            });
-        });
-
         function updateCart() {
             cartToggle.textContent = `🛒 ${cartItems.length}`;
             const cartList = document.querySelector('.cart-items');
@@ -100,6 +92,83 @@
 
         // 初始化
         initNav();
+
+        // 统一校验函数
+        async function checkBookAvailability(bookId, actionType) {
+            try {
+                const response = await fetch('/check_book', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        book_id: bookId,
+                        action: actionType
+                    })
+                });
+
+                const result = await response.json();
+
+                if (!response.ok) {
+                    showAlert(result.message, 'error');
+                    return false;
+                }
+                return true;
+
+            } catch (error) {
+                showAlert('网络错误，请检查连接', 'error');
+                return false;
+            }
+        }
+
+        // 显示提示框
+        function showAlert(message, type='info') {
+            const alertBox = document.createElement('div');
+            alertBox.className = `alert ${type}`;
+            alertBox.innerHTML = `
+                ${message}
+                <span class="close-btn">&times;</span>
+            `;
+
+            document.body.appendChild(alertBox);
+
+            // 自动消失
+            setTimeout(() => {
+                alertBox.remove();
+            }, 3000);
+
+            // 手动关闭
+            alertBox.querySelector('.close-btn').onclick = () => alertBox.remove();
+        }
+
+        // 修改借书车添加逻辑
+        document.querySelectorAll('.add-to-cart').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const bookCard = btn.closest('.book-card');
+                const bookId = bookCard.dataset.bookId; // 需要先为卡片添加data属性
+
+                const isAvailable = await checkBookAvailability(bookId, 'add_to_cart');
+                if (!isAvailable) return;
+
+                const bookTitle = bookCard.querySelector('h3').textContent;
+                cartItems.push(bookTitle);
+                updateCart();
+                showAlert('成功加入借书车', 'success');
+            });
+        });
+
+        // 修改立即借阅逻辑
+        document.querySelectorAll('.borrow-now').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const bookCard = btn.closest('.book-card');
+                const bookId = bookCard.dataset.bookId;
+
+                const isAvailable = await checkBookAvailability(bookId, 'borrow');
+                if (!isAvailable) return;
+
+                // 执行借阅逻辑
+                showAlert('借阅申请已提交', 'success');
+            });
+        });
     </script>
+
 </body>
 </html>

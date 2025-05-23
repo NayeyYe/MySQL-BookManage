@@ -171,3 +171,16 @@ BEGIN
     RETURN v_exists > 0;
 END//
 DELIMITER ;
+
+# 判断一本书有没有余量
+delimiter //
+drop function if exists check_book_remain;
+create function if not exists check_book_remain(id int)
+    returns boolean
+    reads sql data
+begin
+    declare v_remain boolean;
+    select book.remain into v_remain from book where book.book_id=id;
+    return v_remain > 0;
+end //
+delimiter ;

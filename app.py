@@ -186,6 +186,44 @@ def home():
             connection.close()
 
 
+# app.py 添加借阅校验路由
+@app.route('/check_book', methods=['POST'])
+def check_book_availability():
+    try:
+        data = request.get_json()
+        book_id = data['book_id']
+        action = data['action']  # 'borrow'或'add_to_cart'
+
+        connection = get_db_connection()
+        with connection.cursor() as cursor:
+            # 调用校验函数
+            cursor.execute("SELECT check_book_remain(%s) as available", (book_id,))
+            result = cursor.fetchone()
+
+            if result['available']:
+                # 余量充足处理逻辑
+                if action == 'add_to_cart':
+                    return jsonify({'available': True, 'message': '已加入借书车'})
+                return jsonify({'available': True, 'message': '可借阅'})
+            else:
+                # 余量不足处理
+                return jsonify({
+                    'available': False,
+                    'message': '没有余量',
+                    'alert_type': 'error'
+                }), 400
+
+    except KeyError as e:
+        return jsonify({'success': False, 'message': f'缺少必要参数: {e}'}), 400
+    except pymysql.MySQLError as e:
+        return jsonify({'success': False, 'message': f'数据库错误: {str(e)}'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'message': str(e)}), 500
+    finally:
+        if 'connection' in locals():
+            connection.close()
+
+
 # 处理未实现页面
 @app.route('/<page>')
 def catch_all(page):
