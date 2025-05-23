@@ -1,139 +1,121 @@
-use bookmanage;
+-- file: test.sql
+USE bookmanage;
 
--- 初始化测试环境
-START TRANSACTION;
--- ----------------------------
--- 第一部分：基础数据准备
--- ----------------------------
-INSERT INTO category (category, max_borrowed_books, borrow_period) VALUES
-                                                                       ('学生', 3, 14),
-                                                                       ('教师', 5, 30),
-                                                                       ('管理员', 1, 7);
-INSERT INTO publisher (publisher) VALUES
-                                      ('清华大学出版社'),
-                                      ('人民邮电出版社');
-INSERT INTO bookCategory (category) VALUES
-                                        ('计算机'),
-                                        ('文学'),
-                                        ('数学');
-INSERT INTO author (author) VALUES
-                                ('李华'),
-                                ('王明'),
-                                ('张强');
--- ----------------------------
--- 第二部分：核心功能测试
--- ----------------------------
--- 测试用例1：完整借阅周期测试
-SET @test_name = '测试用户1';
--- 正确方式：分开插入借阅人并获取ID
--- 插入第一个借阅人
-INSERT INTO borrower (name, PhoneNumber, category_id, registration_date)
-VALUES (@test_name, '13800000001', 1, CURDATE());
+-- ---------------------------
+-- 存储过程测试
+-- ---------------------------
 
+-- 测试1: 更新借阅权限
+CALL update_is_can_borrow(1);
+SELECT id, name, borrowed_num, is_can_borrow FROM borrower WHERE id = 1;
 
-INSERT INTO book (title, isbn, publisher_id, publication_year, total, remain, location) VALUES
-                                                                                            ('数据库系统', '978-7-302-12345-7', 1, 2020, 5, 5, 'A101'),
-                                                                                            ('高等数学', '978-7-115-67890-2', 2, 2021, 3, 3, 'B205');
+-- 测试2: 查询用户借阅信息
+CALL select_person('张伟');
 
--- 测试插入作者和分类关系
-INSERT INTO bookAuthorRelation (book_id, author_id) VALUES
-                                                        (1, 1),
-                                                        (1, 2),
-                                                        (2, 3);
+-- 测试3: 查询图书借阅信息
+CALL select_book('三体');
 
-INSERT INTO bookCategoryRelation (book_id, category_id) VALUES
-                                                            (1, 1),
-                                                            (2, 3);
+-- 测试4: 生成借阅记录（先重置环境）
+UPDATE book SET remain = 5 WHERE book_id = 1;
+CALL borrow_book(1, 1);
+SELECT * FROM borrow_record WHERE borrower_id = 1 AND book_id = 1;
+SELECT remain FROM book WHERE book_id = 1;
 
--- ----------------------------
--- 第三部分：功能验证
--- ----------------------------
--- 验证测试1：正常借书流程
-SET @borrower_id = LAST_INSERT_ID();  -- 测试用户1
-SET @book_id = 1;
+-- 测试5: 注册用户（正常情况）
+CALL register_user('测试用户', '13812341234', 1, '2025010101001', 'Test@123');
+SELECT * FROM borrower WHERE name = '测试用户';
 
--- 执行借书
--- 使用正确的借阅人ID变量
-INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
-                                                                            (@borrower_id, 1, CURDATE(), CURDATE() + INTERVAL 14 DAY),
-                                                                            (@borrower_id, 2, CURDATE(), CURDATE() + INTERVAL 30 DAY);
-select * from borrower;
-select * from book;
+-- 测试6: 注册用户（异常情况-重复注册）
+CALL register_user('张伟', '13597646338', 1, '2025010101001', 'Test@123');
 
--- 验证触发器生效
-SELECT '【验证1】借书后图书剩余量应为4' AS test_case;
-SELECT remain FROM book WHERE book_id = @book_id;
+-- ---------------------------
+-- 函数测试
+-- ---------------------------
 
-SELECT '【验证2】借阅人已借数量应为2' AS test_case;
-SELECT borrowed_num FROM borrower WHERE id = @borrower_id;
+-- 测试1: 罚款记录数量查询
+SELECT count_fine_record(1) AS 用户1的未支付罚款数;
 
--- ----------------------------
--- 测试用例2：借阅限制测试
--- 尝试借阅超过限额
-INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
-                                                                            (@borrower_id, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY),
-                                                                            (@borrower_id, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY),
-                                                                            (@borrower_id, @book_id, CURDATE(), CURDATE() + INTERVAL 14 DAY);
-select * from borrower;
-SELECT '【验证3】当借阅达到上限时应禁止借书' AS test_case;
-SELECT is_can_borrow FROM borrower WHERE id = @borrower_id;
+-- 测试2: 图书借阅者查询
+SELECT who_borrow_it('三体') AS 当前借阅者;
 
--- ----------------------------
--- 测试用例3：还书流程测试
--- 先更新为已归还
-select * from borrow_record;
-select * from book where book_id=1;
-UPDATE borrow_record SET
-                         is_return = TRUE,
-                         return_date = CURDATE()
-WHERE record_id = 1;
-select * from borrow_record;
-select * from book where book_id=1;
-select * from borrower;
+-- 测试3: 罚款金额计算
+SELECT Calculate_Fines('张伟') AS 张伟的总罚款;
 
+-- 测试4: 身份验证函数
+SELECT check_identity_exists_in_origin('2025010101001', '张伟', 1) AS 学生身份验证;
 
-SELECT '【验证4】还书后图书剩余量恢复为2' AS test_case;
-SELECT remain FROM book WHERE book_id = @book_id;
+-- ---------------------------
+-- 触发器测试
+-- ---------------------------
 
-SELECT '【验证5】借阅人已借数量应减为4' AS test_case;
-SELECT borrowed_num FROM borrower WHERE id = @borrower_id;
+-- 测试1: 借阅超出库存（先设置库存为0）
+UPDATE book SET remain = 0 WHERE book_id = 1;
+INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date)
+VALUES (1, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY));
 
--- ----------------------------
--- 第四部分：存储过程测试
--- 测试存储过程：查询借阅人信息
-SELECT '【验证6】存储过程select_person应返回正确信息' AS test_case;
-CALL select_person(@test_name);
+-- 测试2: 正常还书操作（恢复库存）
+UPDATE book SET remain = 5 WHERE book_id = 1;
+INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date, is_return)
+VALUES (1, 1, CURDATE(), DATE_ADD(CURDATE(), INTERVAL 30 DAY), FALSE);
+UPDATE borrow_record SET is_return = TRUE WHERE record_id = LAST_INSERT_ID();
+SELECT remain FROM book WHERE book_id = 1;
 
--- 测试函数：计算罚款
-SELECT '【验证7】罚款计算函数应返回0' AS test_case;
-SELECT Calculate_Fines(@test_name) AS total_fines;
+-- ---------------------------
+-- 事件测试
+-- ---------------------------
 
--- ----------------------------
--- 第五部分：逾期罚款测试
--- 设置逾期场景
-UPDATE borrow_record SET
-                         is_return = FALSE,
-                         due_date = DATE_SUB(CURDATE(), INTERVAL 5 DAY)
-WHERE record_id = 1;
-select * from borrow_record;
--- 手动触发罚款计算事件
-call UpdateOverdueAndFines();
+-- 手动执行事件关联的存储过程
+CALL UpdateOverdueAndFines();
 CALL DailyCalculateFines();
 
-SELECT '【验证8】应生成罚款记录' AS test_case;
-SELECT * FROM fine_record WHERE borrower_id = @borrower_id;
+-- 验证结果
+SELECT * FROM fine_record WHERE overdue_days > 0 LIMIT 5;
 
-SELECT '【验证9】5天逾期罚款应为5元' AS test_case;
-SELECT fine FROM fine_record WHERE record_id = 1;
+-- ---------------------------
+-- 登录系统测试
+-- ---------------------------
 
--- ----------------------------
--- 第六部分：数据完整性验证
-SELECT '【验证11】外键约束应正常生效' AS test_case;
--- 预期失败的插入
-INSERT INTO borrow_record (borrower_id, book_id, borrow_date, due_date) VALUES
-    (999, 1, CURDATE(), CURDATE());  -- 不存在的借阅人
+-- 测试1: 正常手机登录
+CALL login_by_phone('13597646338', '13Password,');
 
--- ----------------------------
--- 清理测试数据
-ROLLBACK;  -- 回滚所有测试数据
+-- 测试2: 错误密码登录
+CALL login_by_phone('13597646338', 'wrongpassword');
 
+-- 测试3: 管理员登录
+CALL login_admin('root', '13Password,');
+
+-- ---------------------------
+-- 借还书系统测试
+-- ---------------------------
+
+-- 测试1: 获取当前借阅
+CALL get_current_borrows(1);
+
+-- 测试2: 获取借阅历史
+CALL get_borrow_history(1);
+
+-- 测试3: 获取罚款记录
+CALL get_fine_records(1);
+
+-- 测试4: 支付罚款
+UPDATE fine_record SET is_pay = FALSE WHERE fine_id = 1;
+CALL pay_fine(1);
+SELECT is_pay FROM fine_record WHERE fine_id = 1;
+
+-- ---------------------------
+-- 管理功能测试
+-- ---------------------------
+
+-- 测试1: 获取所有用户
+CALL get_all_users();
+
+-- 测试2: 获取所有借阅记录
+CALL get_all_borrows();
+
+-- 测试3: 切换用户状态
+CALL toggle_user_status(1);
+SELECT is_can_borrow FROM borrower WHERE id = 1;
+
+-- 测试完成后重置环境
+UPDATE borrower SET is_can_borrow = TRUE WHERE id = 1;
+DELETE FROM borrower WHERE name = '测试用户';
